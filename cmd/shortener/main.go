@@ -23,8 +23,9 @@ func RootHandler(w http.ResponseWriter, r *http.Request) {
 		id := uuid.New()
 		short_link := id.String()[:8]
 		short_urls[short_link] = link
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		w.WriteHeader(http.StatusCreated)
 		w.Write([]byte("http://" + r.Host + "/" + short_link))
-		w.WriteHeader(201)
 		return
 	} else if r.Method == http.MethodGet {
 		id := r.URL.Path[1:]
