@@ -19,19 +19,17 @@ func RootHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		link := string(body)
-		if link == "" {
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
 		id := uuid.New()
 		short_link := id.String()[:8]
 		short_urls[short_link] = link
 		w.Write([]byte("http://" + r.Host + "/" + short_link))
+		w.WriteHeader(http.StatusCreated)
 	} else if r.Method == http.MethodGet {
 		id := r.URL.Path[1:]
 		value, ok := short_urls[id]
 		if ok {
 			http.Redirect(w, r, value, http.StatusTemporaryRedirect)
+			w.WriteHeader(http.StatusTemporaryRedirect)
 			return
 		}
 	}
