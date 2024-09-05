@@ -1,9 +1,7 @@
 package main
 
 import (
-	"fmt"
-	"io/ioutil"
-	"log"
+	"io"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -16,9 +14,8 @@ var (
 
 func RootHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost && r.Header.Get("Content-Type") == "text/plain" {
-		body, err := ioutil.ReadAll(r.Body)
+		body, err := io.ReadAll(r.Body)
 		if err != nil {
-			log.Fatal("Ошибка получения тела запроса")
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
@@ -28,8 +25,6 @@ func RootHandler(w http.ResponseWriter, r *http.Request) {
 		short_urls[short_link] = link
 		w.Write([]byte(server_url + short_link))
 	} else if r.Method == http.MethodGet {
-		fmt.Println(short_urls)
-		fmt.Println(r.URL.Path)
 		id := r.URL.Path[1:]
 		value, ok := short_urls[id]
 		if ok {
