@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	short_urls map[string]string
+	shortUrls map[string]string
 )
 
 func RootHandler(w http.ResponseWriter, r *http.Request) {
@@ -21,15 +21,15 @@ func RootHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		link := string(body)
 		id := uuid.New()
-		short_link := id.String()[:8]
-		short_urls[short_link] = link
+		shortLink := id.String()[:8]
+		shortUrls[shortLink] = link
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		w.WriteHeader(http.StatusCreated)
-		w.Write([]byte("http://" + r.Host + "/" + short_link))
+		w.Write([]byte("http://" + r.Host + "/" + shortLink))
 		return
 	} else if r.Method == http.MethodGet {
 		id := r.URL.Path[1:]
-		value, ok := short_urls[id]
+		value, ok := shortUrls[id]
 		if ok {
 			w.Header().Set("Location", value)
 		}
@@ -41,7 +41,7 @@ func RootHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	short_urls = map[string]string{}
+	shortUrls = map[string]string{}
 
 	router := http.NewServeMux()
 	router.HandleFunc(`/`, RootHandler)
