@@ -8,7 +8,6 @@ import (
 )
 
 var (
-	server_url string = "http://localhost:8080/"
 	short_urls map[string]string
 )
 
@@ -20,10 +19,14 @@ func RootHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		link := string(body)
+		if link == "" {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
 		id := uuid.New()
 		short_link := id.String()[:8]
 		short_urls[short_link] = link
-		w.Write([]byte(server_url + short_link))
+		w.Write([]byte("http://" + r.Host + "/" + short_link))
 	} else if r.Method == http.MethodGet {
 		id := r.URL.Path[1:]
 		value, ok := short_urls[id]
