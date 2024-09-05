@@ -3,6 +3,7 @@ package main
 import (
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/google/uuid"
 )
@@ -12,7 +13,7 @@ var (
 )
 
 func RootHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodPost && r.Header.Get("Content-Type") == "text/plain" {
+	if r.Method == http.MethodPost && strings.Contains(r.Header.Get("Content-Type"), "text/plain") {
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
@@ -23,15 +24,16 @@ func RootHandler(w http.ResponseWriter, r *http.Request) {
 		short_link := id.String()[:8]
 		short_urls[short_link] = link
 		w.Write([]byte("http://" + r.Host + "/" + short_link))
-		w.WriteHeader(http.StatusCreated)
+		w.WriteHeader(201)
+		return
 	} else if r.Method == http.MethodGet {
 		id := r.URL.Path[1:]
 		value, ok := short_urls[id]
 		if ok {
-			http.Redirect(w, r, value, http.StatusTemporaryRedirect)
-			w.WriteHeader(http.StatusTemporaryRedirect)
-			return
+			w.Header().Set("Location", value)
 		}
+		w.WriteHeader(http.StatusTemporaryRedirect)
+		return
 	}
 
 	w.WriteHeader(http.StatusBadRequest)
