@@ -2,6 +2,8 @@ package config
 
 import (
 	"flag"
+	"strconv"
+	"strings"
 )
 
 type Config struct {
@@ -10,17 +12,14 @@ type Config struct {
 }
 
 func Init() Config {
-	serverHost := flag.String("a", "", "input server host")
-	baseURL := flag.String("b", "", "input base url")
+	serverHost := flag.String("a", ":8080", "input server host")
+	baseURL := flag.String("b", "http://localhost:8080/", "input base url")
 
 	flag.Parse()
 
-	if *serverHost == "" {
-		*serverHost = ":8080"
-	}
-
-	if *baseURL == "" {
-		*baseURL = "http://localhost:8080/"
+	port, err := strconv.Atoi(strings.Split(*serverHost, ":")[1])
+	if err != nil || (port > 0 && port < 65536) {
+		panic("incorrect server host")
 	}
 
 	result := Config{
