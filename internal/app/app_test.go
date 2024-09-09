@@ -127,6 +127,7 @@ func TestHandler_RedirectShortUrl(t *testing.T) {
 			rootHandler(w, request)
 
 			res := w.Result()
+			defer res.Body.Close()
 			assert.Equal(t, test.want.code, res.StatusCode)
 		})
 	}
