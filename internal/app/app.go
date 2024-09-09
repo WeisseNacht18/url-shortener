@@ -24,7 +24,7 @@ func redirectHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func createShortUrlHandler(w http.ResponseWriter, r *http.Request) {
+func createShortURLHandler(w http.ResponseWriter, r *http.Request) {
 	if strings.Contains(r.Header.Get("Content-Type"), "text/plain") {
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
@@ -48,7 +48,7 @@ func Run() {
 
 	router := chi.NewRouter()
 
-	router.Post("/", createShortUrlHandler)
+	router.Post("/", createShortURLHandler)
 	router.Get("/{id}", redirectHandler)
 
 	err := http.ListenAndServe(":8080", router)

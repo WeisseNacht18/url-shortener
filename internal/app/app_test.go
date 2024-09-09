@@ -67,7 +67,7 @@ func TestHandler_CreateShortUrl(t *testing.T) {
 			request.Header.Set("Content-Type", test.data.contentType)
 
 			w := httptest.NewRecorder()
-			createShortUrlHandler(w, request)
+			createShortURLHandler(w, request)
 
 			res := w.Result()
 			assert.Equal(t, test.want.code, res.StatusCode)
