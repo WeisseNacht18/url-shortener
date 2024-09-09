@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 )
 
@@ -12,8 +13,19 @@ var (
 	shortUrls map[string]string
 )
 
-func rootHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodPost && strings.Contains(r.Header.Get("Content-Type"), "text/plain") {
+func redirectHandler(w http.ResponseWriter, r *http.Request) {
+	id := r.URL.Path[1:]
+	value, ok := shortUrls[id]
+	if ok {
+		w.Header().Set("Location", value)
+		w.WriteHeader(http.StatusTemporaryRedirect)
+	} else {
+		w.WriteHeader(http.StatusBadRequest)
+	}
+}
+
+func createShortUrlHandler(w http.ResponseWriter, r *http.Request) {
+	if strings.Contains(r.Header.Get("Content-Type"), "text/plain") {
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
@@ -26,27 +38,18 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		w.WriteHeader(http.StatusCreated)
 		w.Write([]byte("http://" + r.Host + "/" + shortLink))
-		return
-	} else if r.Method == http.MethodGet {
-		id := r.URL.Path[1:]
-		value, ok := shortUrls[id]
-		if ok {
-			w.Header().Set("Location", value)
-			w.WriteHeader(http.StatusTemporaryRedirect)
-		} else {
-			w.WriteHeader(http.StatusBadRequest)
-		}
-		return
+	} else {
+		w.WriteHeader(http.StatusBadRequest)
 	}
-
-	w.WriteHeader(http.StatusBadRequest)
 }
 
 func Run() {
 	shortUrls = map[string]string{}
 
-	router := http.NewServeMux()
-	router.HandleFunc(`/`, rootHandler)
+	router := chi.NewRouter()
+
+	router.Post("/", createShortUrlHandler)
+	router.Get("/{id}", redirectHandler)
 
 	err := http.ListenAndServe(":8080", router)
 
