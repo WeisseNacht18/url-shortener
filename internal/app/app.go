@@ -5,12 +5,14 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/WeisseNacht18/url-shortener/internal/config"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 )
 
 var (
 	shortUrls map[string]string
+	baseURL   string
 )
 
 func redirectHandler(w http.ResponseWriter, r *http.Request) {
@@ -37,21 +39,23 @@ func createShortURLHandler(w http.ResponseWriter, r *http.Request) {
 		shortUrls[shortLink] = link
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		w.WriteHeader(http.StatusCreated)
-		w.Write([]byte("http://" + r.Host + "/" + shortLink))
+		w.Write([]byte(baseURL + shortLink))
 	} else {
 		w.WriteHeader(http.StatusBadRequest)
 	}
 }
 
-func Run() {
+func Run(config config.Config) {
 	shortUrls = map[string]string{}
+
+	baseURL = config.BaseURL
 
 	router := chi.NewRouter()
 
 	router.Post("/", createShortURLHandler)
 	router.Get("/{id}", redirectHandler)
 
-	err := http.ListenAndServe(":8080", router)
+	err := http.ListenAndServe(config.ServerHost, router)
 
 	if err != nil {
 		panic(err)
