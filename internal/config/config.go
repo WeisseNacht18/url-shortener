@@ -52,12 +52,15 @@ func Init() Config {
 	fmt.Println(*serverHost)
 	fmt.Println(*baseURL)
 
-	if envServerHost := os.Getenv("SERVER_ADDRESS"); envServerHost != "" {
+	if envServerHost := os.Getenv("SERVER_ADDRESS"); envServerHost != "" && ValidateServerHost(envServerHost) == nil {
 		*serverHost = envServerHost
 	}
 
-	if envServerHost := os.Getenv("BASE_URL"); envServerHost != "" {
-		*serverHost = envServerHost
+	if envBaseURL := os.Getenv("BASE_URL"); envBaseURL != "" {
+		_, err = url.Parse(envBaseURL)
+		if err == nil {
+			*baseURL = envBaseURL
+		}
 	}
 
 	result := Config{
