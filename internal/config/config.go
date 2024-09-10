@@ -5,13 +5,14 @@ import (
 	"flag"
 	"fmt"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 )
 
 type Config struct {
-	ServerHost string
-	BaseURL    string
+	ServerHost string `env:"SERVER_ADDRESS"`
+	BaseURL    string `env:"BASE_URL"`
 }
 
 func ValidateServerHost(host string) error {
@@ -50,6 +51,14 @@ func Init() Config {
 
 	fmt.Println(*serverHost)
 	fmt.Println(*baseURL)
+
+	if envServerHost := os.Getenv("SERVER_ADDRESS"); envServerHost != "" {
+		*serverHost = envServerHost
+	}
+
+	if envServerHost := os.Getenv("BASE_URL"); envServerHost != "" {
+		*serverHost = envServerHost
+	}
 
 	result := Config{
 		ServerHost: *serverHost,
