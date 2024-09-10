@@ -39,7 +39,7 @@ func createShortURLHandler(w http.ResponseWriter, r *http.Request) {
 		shortUrls[shortLink] = link
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		w.WriteHeader(http.StatusCreated)
-		w.Write([]byte(baseURL + shortLink))
+		w.Write([]byte(baseURL + "/" + shortLink))
 	} else {
 		w.WriteHeader(http.StatusBadRequest)
 	}

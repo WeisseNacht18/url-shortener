@@ -3,6 +3,7 @@ package config
 import (
 	"errors"
 	"flag"
+	"fmt"
 	"net/url"
 	"strconv"
 	"strings"
@@ -44,8 +45,11 @@ func Init() Config {
 
 	_, err := url.Parse(*baseURL)
 	if *baseURL == "" || err != nil {
-		*baseURL = "http://" + *serverHost + "/"
+		*baseURL = "http://" + *serverHost
 	}
+
+	fmt.Println(*serverHost)
+	fmt.Println(*baseURL)
 
 	result := Config{
 		ServerHost: *serverHost,
