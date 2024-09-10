@@ -3,7 +3,6 @@ package config
 import (
 	"errors"
 	"flag"
-	"fmt"
 	"net/url"
 	"strconv"
 	"strings"
@@ -40,16 +39,13 @@ func Init() Config {
 	flag.Parse()
 
 	if *serverHost == "" || ValidateServerHost(*serverHost) != nil {
-		*serverHost = ":8080"
+		*serverHost = "localhost:8080"
 	}
 
-	_, err := url.ParseRequestURI(*baseURL)
-	if err != nil {
-		*baseURL = "http://localhost:8080/"
+	_, err := url.Parse(*baseURL)
+	if *baseURL == "" || err != nil {
+		*baseURL = "http://" + *serverHost + "/"
 	}
-
-	fmt.Println(*serverHost)
-	fmt.Println(*baseURL)
 
 	result := Config{
 		ServerHost: *serverHost,
