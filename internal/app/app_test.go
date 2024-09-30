@@ -139,7 +139,7 @@ func TestHandler_CreateShortUrlWithAPI(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			requestBody := handlers.ShortenRequest{
-				Url: test.data.url,
+				URL: test.data.url,
 			}
 			requestBytes, err := json.Marshal(requestBody)
 			assert.NoError(t, err)

@@ -34,7 +34,7 @@ type (
 	}
 
 	ShortenRequest struct {
-		Url string `json:"url"`
+		URL string `json:"url"`
 	}
 
 	ShortenResponse struct {
@@ -136,7 +136,7 @@ func CreateShortURLWithAPIHandler(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		shortLink := storage.AddURLToStorage(content.Url)
+		shortLink := storage.AddURLToStorage(content.URL)
 
 		response := ShortenResponse{
 			Result: BaseURL + "/" + shortLink,
