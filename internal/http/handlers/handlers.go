@@ -1,8 +1,10 @@
 package handlers
 
 import (
+	"encoding/json"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -29,6 +31,14 @@ type (
 	loggingResponseWriter struct {
 		http.ResponseWriter // встраиваем оригинальный http.ResponseWriter
 		responseData        *responseData
+	}
+
+	ShortenRequest struct {
+		Url string `json:"url"`
+	}
+
+	ShortenResponse struct {
+		Result string `json:"result"`
 	}
 )
 
@@ -108,6 +118,41 @@ func CreateShortURLHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusCreated)
 		content := []byte(BaseURL + "/" + shortLink)
 		w.Write(content)
+	} else {
+		w.WriteHeader(http.StatusBadRequest)
+	}
+}
+
+func CreateShortURLWithAPIHandler(w http.ResponseWriter, r *http.Request) {
+	if strings.Contains(r.Header.Get("Content-Type"), "application/json") {
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		var content ShortenRequest
+		err = json.Unmarshal(body, &content)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		shortLink := storage.AddURLToStorage(content.Url)
+
+		response := ShortenResponse{
+			Result: BaseURL + "/" + shortLink,
+		}
+
+		responseContent, err := json.Marshal(response)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Content-Length", strconv.Itoa(len(string(responseContent))))
+		w.WriteHeader(http.StatusCreated)
+
+		w.Write(responseContent)
 	} else {
 		w.WriteHeader(http.StatusBadRequest)
 	}

@@ -1,6 +1,8 @@
 package app
 
 import (
+	"bytes"
+	"encoding/json"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -16,7 +18,6 @@ import (
 func TestHandler_CreateShortUrl(t *testing.T) {
 	type want struct {
 		code        int
-		method      string
 		contentType string
 	}
 	type data struct {
@@ -70,6 +71,83 @@ func TestHandler_CreateShortUrl(t *testing.T) {
 
 			w := httptest.NewRecorder()
 			handlers.CreateShortURLHandler(w, request)
+
+			res := w.Result()
+			assert.Equal(t, test.want.code, res.StatusCode)
+
+			if res.StatusCode != 400 {
+				defer res.Body.Close()
+				resBody, err := io.ReadAll(res.Body)
+
+				require.NoError(t, err)
+				assert.Contains(t, res.Header.Get("Content-Type"), test.want.contentType)
+				assert.NotEqual(t, "", string(resBody))
+			}
+		})
+	}
+}
+
+func TestHandler_CreateShortUrlWithAPI(t *testing.T) {
+	type want struct {
+		code        int
+		contentType string
+	}
+	type data struct {
+		url         string
+		contentType string
+	}
+	tests := []struct {
+		name string
+		data data
+		want want
+	}{
+		{
+			name: "create short URL (API method) With valid input",
+			data: data{
+				url:         "https://ya.ru/",
+				contentType: "application/json",
+			},
+			want: want{
+				code:        201,
+				contentType: "application/json",
+			},
+		},
+		{
+			name: "create short URL (API method) with empty input",
+			data: data{
+				url:         "",
+				contentType: "application/json",
+			},
+			want: want{
+				code:        201,
+				contentType: "application/json",
+			},
+		},
+		{
+			name: "create short URL (API method) with incorrect Content-Type",
+			data: data{
+				url:         "",
+				contentType: "text/plain",
+			},
+			want: want{
+				code:        400,
+				contentType: "application/json",
+			},
+		},
+	}
+	storage.Init()
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			requestBody := handlers.ShortenRequest{
+				Url: test.data.url,
+			}
+			requestBytes, err := json.Marshal(requestBody)
+			assert.NoError(t, err)
+			request := httptest.NewRequest(http.MethodPost, "/api/shorten", bytes.NewReader(requestBytes))
+			request.Header.Set("Content-Type", test.data.contentType)
+			assert.NotNil(t, request)
+			w := httptest.NewRecorder()
+			handlers.CreateShortURLWithAPIHandler(w, request)
 
 			res := w.Result()
 			assert.Equal(t, test.want.code, res.StatusCode)
