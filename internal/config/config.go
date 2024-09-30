@@ -1,37 +1,21 @@
 package config
 
 import (
-	"errors"
 	"flag"
-	"fmt"
+	"log"
 	"net/url"
 	"os"
-	"strconv"
-	"strings"
+
+	configValidator "github.com/WeisseNacht18/url-shortener/internal/config/validator"
+)
+
+const (
+	defaultServerHost = "localhost:8080"
 )
 
 type Config struct {
 	ServerHost string `env:"SERVER_ADDRESS"`
 	BaseURL    string `env:"BASE_URL"`
-}
-
-func ValidateServerHost(host string) error {
-	splitedHost := strings.Split(host, ":")
-
-	if len(splitedHost) > 2 {
-		return errors.New("invalid hostname")
-	}
-
-	num, err := strconv.Atoi(splitedHost[1])
-	if err != nil {
-		return err
-	}
-
-	if num < 0 || num > 65536 {
-		return errors.New("invalid port")
-	}
-
-	return nil
 }
 
 func Init() Config {
@@ -40,8 +24,8 @@ func Init() Config {
 
 	flag.Parse()
 
-	if *serverHost == "" || ValidateServerHost(*serverHost) != nil {
-		*serverHost = "localhost:8080"
+	if *serverHost == "" || configValidator.IsValidServerHost(*serverHost) != nil {
+		*serverHost = defaultServerHost
 	}
 
 	_, err := url.Parse(*baseURL)
@@ -49,10 +33,10 @@ func Init() Config {
 		*baseURL = "http://" + *serverHost
 	}
 
-	fmt.Println(*serverHost)
-	fmt.Println(*baseURL)
+	log.Println(*serverHost)
+	log.Println(*baseURL)
 
-	if envServerHost := os.Getenv("SERVER_ADDRESS"); envServerHost != "" && ValidateServerHost(envServerHost) == nil {
+	if envServerHost := os.Getenv("SERVER_ADDRESS"); envServerHost != "" && configValidator.IsValidServerHost(envServerHost) == nil {
 		*serverHost = envServerHost
 	}
 
