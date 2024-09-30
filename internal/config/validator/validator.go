@@ -1,4 +1,4 @@
-package configValidator
+package configvalidator
 
 import (
 	"errors"

@@ -28,7 +28,7 @@ func AddURLToStorage(url string) (result string) {
 	return shortLink
 }
 
-func GetURLFromStorage(shortUrl string) (result string, ok bool) {
-	result, ok = storage.shortUrls[shortUrl]
+func GetURLFromStorage(shortURL string) (result string, ok bool) {
+	result, ok = storage.shortUrls[shortURL]
 	return
 }
