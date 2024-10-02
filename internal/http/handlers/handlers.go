@@ -109,8 +109,6 @@ func GzipHandle(next http.HandlerFunc) http.HandlerFunc {
 				return
 			}
 
-			logger.Logger.Infoln("this is work")
-
 			defer gz.Close()
 		}
 
