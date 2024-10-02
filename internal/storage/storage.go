@@ -17,7 +17,7 @@ func Init() {
 	storage.shortUrls = map[string]string{}
 }
 
-func InitWithMap(shortUrls map[string]string) {
+func InitWithMap(shortUrls map[string]string) { //переименовать на New
 	storage = Storage{}
 	storage.shortUrls = shortUrls
 }

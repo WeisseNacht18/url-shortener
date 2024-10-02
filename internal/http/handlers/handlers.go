@@ -1,10 +1,10 @@
 package handlers
 
 import (
+	"compress/gzip"
 	"encoding/json"
 	"io"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 
@@ -21,16 +21,14 @@ func Init(baseURL string) {
 }
 
 type (
-	// берём структуру для хранения сведений об ответе
 	responseData struct {
 		status int
 		size   int
 	}
 
-	// добавляем реализацию http.ResponseWriter
 	loggingResponseWriter struct {
-		http.ResponseWriter // встраиваем оригинальный http.ResponseWriter
-		responseData        *responseData
+		http.ResponseWriter
+		responseData *responseData
 	}
 
 	ShortenRequest struct {
@@ -43,20 +41,17 @@ type (
 )
 
 func (r *loggingResponseWriter) Write(b []byte) (int, error) {
-	// записываем ответ, используя оригинальный http.ResponseWriter
 	size, err := r.ResponseWriter.Write(b)
-	r.responseData.size += size // захватываем размер
+	r.responseData.size += size
 	return size, err
 }
 
 func (r *loggingResponseWriter) WriteHeader(statusCode int) {
-	// записываем код статуса, используя оригинальный http.ResponseWriter
 	r.ResponseWriter.WriteHeader(statusCode)
-	r.responseData.status = statusCode // захватываем код статуса
+	r.responseData.status = statusCode
 }
 
-func WithLogging(fn func(w http.ResponseWriter, r *http.Request)) http.HandlerFunc {
-	h := http.HandlerFunc(fn)
+func WithLogging(h http.HandlerFunc) http.HandlerFunc {
 	logFn := func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 
@@ -69,7 +64,7 @@ func WithLogging(fn func(w http.ResponseWriter, r *http.Request)) http.HandlerFu
 		}
 
 		lw := loggingResponseWriter{
-			ResponseWriter: w, // встраиваем оригинальный http.ResponseWriter
+			ResponseWriter: w,
 			responseData:   responseData,
 		}
 
@@ -92,6 +87,48 @@ func WithLogging(fn func(w http.ResponseWriter, r *http.Request)) http.HandlerFu
 	}
 
 	return http.HandlerFunc(logFn)
+}
+
+type gzipWriter struct {
+	http.ResponseWriter
+	Writer io.Writer
+}
+
+func (w gzipWriter) Write(b []byte) (int, error) {
+	return w.Writer.Write(b)
+}
+
+func GzipHandle(next http.HandlerFunc) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.Contains(r.Header.Get("Content-Encoding"), "gzip") {
+			gz, err := gzip.NewReader(r.Body)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			defer gz.Close()
+		}
+
+		if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") &&
+			(strings.Contains(r.Header.Get("Content-Type"), "application/json") ||
+				strings.Contains(r.Header.Get("Content-Type"), "text/html")) {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		gz, err := gzip.NewWriterLevel(w, gzip.BestSpeed)
+		if err != nil {
+			io.WriteString(w, err.Error())
+			return
+		}
+		defer gz.Close()
+
+		w.Header().Set("Content-Encoding", "gzip")
+		next.ServeHTTP(gzipWriter{ResponseWriter: w, Writer: gz}, r)
+
+		logger.Logger.Infoln("this is work")
+	})
 }
 
 func RedirectHandler(w http.ResponseWriter, r *http.Request) {
@@ -149,7 +186,6 @@ func CreateShortURLWithAPIHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		w.Header().Set("Content-Length", strconv.Itoa(len(string(responseContent))))
 		w.WriteHeader(http.StatusCreated)
 
 		w.Write(responseContent)
