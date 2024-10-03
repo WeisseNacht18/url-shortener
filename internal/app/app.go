@@ -20,7 +20,7 @@ func Run(config config.Config) {
 
 	router.Post("/", handlers.WithLogging(handlers.GzipHandle(http.HandlerFunc(handlers.CreateShortURLHandler))))
 	router.Post("/api/shorten", handlers.WithLogging(handlers.GzipHandle(http.HandlerFunc(handlers.CreateShortURLWithAPIHandler))))
-	router.Get("/{id}", handlers.WithLogging(http.HandlerFunc(handlers.RedirectHandler)))
+	router.Get("/{id}", handlers.WithLogging(handlers.GzipHandle(http.HandlerFunc(handlers.RedirectHandler))))
 
 	err := http.ListenAndServe(config.ServerHost, router)
 
