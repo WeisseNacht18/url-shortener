@@ -175,6 +175,7 @@ func CreateShortURLWithAPIHandler(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
+
 		shortLink := storage.AddURLToStorage(content.URL)
 
 		response := ShortenResponse{
