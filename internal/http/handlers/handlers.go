@@ -151,7 +151,6 @@ func CreateShortURLHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		link := string(body)
-		logger.Logger.Infoln(link)
 		shortLink := storage.AddURLToStorage(link)
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		w.WriteHeader(http.StatusCreated)
