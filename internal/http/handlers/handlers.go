@@ -136,9 +136,7 @@ func RedirectHandler(w http.ResponseWriter, r *http.Request) {
 	id := strings.TrimPrefix(r.URL.Path, "/")
 	value, ok := storage.GetURLFromStorage(id)
 	if ok {
-		w.Header().Set("Location", value)
-		w.Header().Set("Referrer-Policy", "no-referrer")
-		w.WriteHeader(http.StatusTemporaryRedirect)
+		http.Redirect(w, r, value, http.StatusTemporaryRedirect)
 	} else {
 		w.WriteHeader(http.StatusBadRequest)
 	}
