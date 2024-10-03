@@ -102,8 +102,7 @@ func GzipHandle(next http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if strings.Contains(r.Header.Get("Content-Encoding"), "gzip") &&
 			(strings.Contains(r.Header.Get("Content-Type"), "application/json") ||
-				strings.Contains(r.Header.Get("Content-Type"), "text/html")) &&
-			r.Method != http.MethodGet {
+				strings.Contains(r.Header.Get("Content-Type"), "text/html")) {
 			gz, err := gzip.NewReader(r.Body)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -115,8 +114,7 @@ func GzipHandle(next http.HandlerFunc) http.HandlerFunc {
 
 		if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") &&
 			!strings.Contains(r.Header.Get("Content-Type"), "application/json") &&
-			!strings.Contains(r.Header.Get("Content-Type"), "text/html") ||
-			r.Method == http.MethodGet {
+			!strings.Contains(r.Header.Get("Content-Type"), "text/html") {
 
 			next.ServeHTTP(w, r)
 			return
