@@ -115,7 +115,8 @@ func GzipHandle(next http.HandlerFunc) http.HandlerFunc {
 
 		if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") &&
 			!strings.Contains(r.Header.Get("Content-Type"), "application/json") &&
-			!strings.Contains(r.Header.Get("Content-Type"), "text/html") {
+			!strings.Contains(r.Header.Get("Content-Type"), "text/html") ||
+			r.Method == http.MethodGet {
 
 			next.ServeHTTP(w, r)
 			return
