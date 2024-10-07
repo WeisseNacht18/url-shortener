@@ -59,6 +59,12 @@ func WithLogging(h http.HandlerFunc) http.HandlerFunc {
 
 		uri := r.RequestURI
 		method := r.Method
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		content := string(body)
 
 		responseData := &responseData{
 			status: 0,
@@ -79,6 +85,7 @@ func WithLogging(h http.HandlerFunc) http.HandlerFunc {
 			"uri", uri,
 			"method", method,
 			"duration", duration,
+			content,
 		)
 
 		logger.Logger.Infoln(
