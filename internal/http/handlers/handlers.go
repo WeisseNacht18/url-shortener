@@ -24,6 +24,7 @@ type (
 	responseData struct {
 		status int
 		size   int
+		uri    string
 	}
 
 	loggingResponseWriter struct {
@@ -43,6 +44,7 @@ type (
 func (r *loggingResponseWriter) Write(b []byte) (int, error) {
 	size, err := r.ResponseWriter.Write(b)
 	r.responseData.size += size
+	r.responseData.uri = string(b)
 	return size, err
 }
 
@@ -81,6 +83,7 @@ func WithLogging(h http.HandlerFunc) http.HandlerFunc {
 
 		logger.Logger.Infoln(
 			"response:",
+			"uri", responseData.uri,
 			"status", responseData.status,
 			"content-length", responseData.size,
 		)
