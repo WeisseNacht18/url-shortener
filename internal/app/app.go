@@ -6,17 +6,23 @@ import (
 
 	"github.com/WeisseNacht18/url-shortener/internal/config"
 	"github.com/WeisseNacht18/url-shortener/internal/http/handlers"
+	"github.com/WeisseNacht18/url-shortener/internal/logger"
 	"github.com/WeisseNacht18/url-shortener/internal/storage"
 	"github.com/go-chi/chi/v5"
 )
 
 func Run(config config.Config) {
+	logger.Init()
 	storage.Init()
 	handlers.Init(config.BaseURL)
 
 	router := chi.NewRouter()
 
+	router.Use(handlers.WithLogging)
+	router.Use(handlers.GzipHandle)
+
 	router.Post("/", handlers.CreateShortURLHandler)
+	router.Post("/api/shorten", handlers.CreateShortURLWithAPIHandler)
 	router.Get("/{id}", handlers.RedirectHandler)
 
 	err := http.ListenAndServe(config.ServerHost, router)
