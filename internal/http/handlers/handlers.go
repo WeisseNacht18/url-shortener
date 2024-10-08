@@ -105,7 +105,9 @@ func GzipHandle(next http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if strings.Contains(r.Header.Get("Content-Encoding"), "gzip") &&
 			(strings.Contains(r.Header.Get("Content-Type"), "application/json") ||
-				strings.Contains(r.Header.Get("Content-Type"), "text/html")) {
+				strings.Contains(r.Header.Get("Content-Type"), "text/html") ||
+				strings.Contains(r.Header.Get("Content-Type"), "application/x-gzip") ||
+				strings.Contains(r.Header.Get("Content-Type"), "application/gzip")) {
 
 			gz, err := gzip.NewReader(r.Body)
 			if err != nil {
@@ -118,7 +120,9 @@ func GzipHandle(next http.HandlerFunc) http.HandlerFunc {
 
 		if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") &&
 			!strings.Contains(r.Header.Get("Content-Type"), "application/json") &&
-			!strings.Contains(r.Header.Get("Content-Type"), "text/html") {
+			!strings.Contains(r.Header.Get("Content-Type"), "text/html") &&
+			!strings.Contains(r.Header.Get("Content-Type"), "application/x-gzip") &&
+			!strings.Contains(r.Header.Get("Content-Type"), "application/gzip") {
 
 			next.ServeHTTP(w, r)
 			return
@@ -147,7 +151,10 @@ func RedirectHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateShortURLHandler(w http.ResponseWriter, r *http.Request) {
-	if strings.Contains(r.Header.Get("Content-Type"), "text/plain") {
+	if strings.Contains(r.Header.Get("Content-Type"), "text/plain") ||
+		strings.Contains(r.Header.Get("Content-Type"), "application/x-gzip") ||
+		strings.Contains(r.Header.Get("Content-Type"), "application/gzip") {
+
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
