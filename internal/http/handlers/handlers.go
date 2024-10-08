@@ -59,12 +59,6 @@ func WithLogging(h http.HandlerFunc) http.HandlerFunc {
 
 		uri := r.RequestURI
 		method := r.Method
-		body, err := io.ReadAll(r.Body)
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-		content := string(body)
 
 		responseData := &responseData{
 			status: 0,
@@ -85,7 +79,6 @@ func WithLogging(h http.HandlerFunc) http.HandlerFunc {
 			"uri", uri,
 			"method", method,
 			"duration", duration,
-			content,
 		)
 
 		logger.Logger.Infoln(
@@ -112,8 +105,7 @@ func GzipHandle(next http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if strings.Contains(r.Header.Get("Content-Encoding"), "gzip") &&
 			(strings.Contains(r.Header.Get("Content-Type"), "application/json") ||
-				strings.Contains(r.Header.Get("Content-Type"), "text/html") ||
-				strings.Contains(r.Header.Get("Content-Type"), "application/x-gzip")) {
+				strings.Contains(r.Header.Get("Content-Type"), "text/html")) {
 
 			gz, err := gzip.NewReader(r.Body)
 			if err != nil {
@@ -155,8 +147,7 @@ func RedirectHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateShortURLHandler(w http.ResponseWriter, r *http.Request) {
-	if strings.Contains(r.Header.Get("Content-Type"), "text/plain") ||
-		strings.Contains(r.Header.Get("Content-Type"), "application/x-gzip") {
+	if strings.Contains(r.Header.Get("Content-Type"), "text/plain") {
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
