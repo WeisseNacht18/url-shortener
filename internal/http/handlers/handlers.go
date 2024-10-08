@@ -3,7 +3,6 @@ package handlers
 import (
 	"compress/gzip"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -95,28 +94,56 @@ type gzipWriter struct {
 	Writer io.Writer
 }
 
+type gzipReader struct {
+	r  io.ReadCloser
+	zr *gzip.Reader
+}
+
+func newCompressReader(r io.ReadCloser) (*gzipReader, error) {
+	zr, err := gzip.NewReader(r)
+	if err != nil {
+		return nil, err
+	}
+
+	return &gzipReader{
+		r:  r,
+		zr: zr,
+	}, nil
+}
+
+func (c gzipReader) Read(p []byte) (n int, err error) {
+	return c.zr.Read(p)
+}
+
+func (c *gzipReader) Close() error {
+	if err := c.r.Close(); err != nil {
+		return err
+	}
+	return c.zr.Close()
+}
+
 func (w gzipWriter) Write(b []byte) (int, error) {
 	return w.Writer.Write(b)
 }
 
 func GzipHandle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if strings.Contains(r.Header.Get("Content-Encoding"), "gzip") &&
-			(strings.Contains(r.Header.Get("Content-Type"), "application/json") ||
-				strings.Contains(r.Header.Get("Content-Type"), "text/html")) {
+		if strings.Contains(r.Header.Get("Content-Encoding"), "gzip") {
 
-			gz, err := gzip.NewReader(r.Body)
+			gz, err := newCompressReader(r.Body)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
 
+			r.Body = gz
+			defer r.Body.Close()
+
 			defer gz.Close()
 		}
 
 		if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") &&
-			!strings.Contains(r.Header.Get("Content-Type"), "application/json") &&
-			!strings.Contains(r.Header.Get("Content-Type"), "text/html") {
+			!strings.Contains(r.Header.Get("Content-Type"), "application/json") {
 
 			next.ServeHTTP(w, r)
 			return
@@ -145,7 +172,9 @@ func RedirectHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateShortURLHandler(w http.ResponseWriter, r *http.Request) {
-	if strings.Contains(r.Header.Get("Content-Type"), "text/plain") {
+	if strings.Contains(r.Header.Get("Content-Type"), "text/plain") ||
+		strings.Contains(r.Header.Get("Content-Type"), "application/x-gzip") ||
+		strings.Contains(r.Header.Get("Content-Type"), "application/gzip") {
 
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
@@ -153,7 +182,6 @@ func CreateShortURLHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		link := string(body)
-		fmt.Println(link)
 		shortLink := storage.AddURLToStorage(link)
 		w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
 		w.WriteHeader(http.StatusCreated)
