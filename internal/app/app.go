@@ -18,9 +18,12 @@ func Run(config config.Config) {
 
 	router := chi.NewRouter()
 
-	router.Post("/", handlers.GzipHandle(handlers.WithLogging(http.HandlerFunc(handlers.CreateShortURLHandler))))
-	router.Post("/api/shorten", handlers.GzipHandle(handlers.WithLogging(http.HandlerFunc(handlers.CreateShortURLWithAPIHandler))))
-	router.Get("/{id}", handlers.GzipHandle(handlers.WithLogging(http.HandlerFunc(handlers.RedirectHandler))))
+	router.Use(handlers.WithLogging)
+	router.Use(handlers.GzipHandle)
+
+	router.Post("/", handlers.CreateShortURLHandler)
+	router.Post("/api/shorten", handlers.CreateShortURLWithAPIHandler)
+	router.Get("/{id}", handlers.RedirectHandler)
 
 	err := http.ListenAndServe(config.ServerHost, router)
 
