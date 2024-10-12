@@ -63,7 +63,7 @@ func TestHandler_CreateShortUrl(t *testing.T) {
 			},
 		},
 	}
-	storage.Init()
+	storage.NewEmpty()
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			request := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(test.data.url))
@@ -135,7 +135,7 @@ func TestHandler_CreateShortUrlWithAPI(t *testing.T) {
 			},
 		},
 	}
-	storage.Init()
+	storage.NewEmpty()
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			requestBody := handlers.ShortenRequest{
@@ -199,7 +199,7 @@ func TestHandler_RedirectShortUrl(t *testing.T) {
 		"abcdefgh": "https://ya.ru",
 		"dcbahgfe": "https://mail.ru",
 	}
-	storage.InitWithMap(shortUrls)
+	storage.NewWithMap(shortUrls)
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			request := httptest.NewRequest(http.MethodGet, test.url, nil)

@@ -13,7 +13,8 @@ import (
 
 func Run(config config.Config) {
 	logger.Init()
-	storage.Init()
+
+	storage.New(config.FileStoragePath)
 	handlers.Init(config.BaseURL)
 
 	router := chi.NewRouter()

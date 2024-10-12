@@ -2,25 +2,27 @@ package config
 
 import (
 	"flag"
-	"log"
 	"net/url"
 	"os"
 
-	configValidator "github.com/WeisseNacht18/url-shortener/internal/config/validator"
+	configValidator "github.com/WeisseNacht18/url-shortener/internal/validator"
 )
 
 const (
-	defaultServerHost = "localhost:8080"
+	defaultServerHost      = "localhost:8080"
+	defaultFileStoragePath = "storage.txt"
 )
 
 type Config struct {
-	ServerHost string `env:"SERVER_ADDRESS"`
-	BaseURL    string `env:"BASE_URL"`
+	ServerHost      string `env:"SERVER_ADDRESS"`
+	BaseURL         string `env:"BASE_URL"`
+	FileStoragePath string `env:"FILE_STORAGE_PATH"`
 }
 
-func Init() Config {
+func New() Config {
 	serverHost := flag.String("a", "", "input server host")
 	baseURL := flag.String("b", "", "input base url")
+	fileStoragePath := flag.String("f", "", "input file storage path")
 
 	flag.Parse()
 
@@ -33,8 +35,9 @@ func Init() Config {
 		*baseURL = "http://" + *serverHost
 	}
 
-	log.Println(*serverHost)
-	log.Println(*baseURL)
+	if *fileStoragePath == "" {
+		*fileStoragePath = defaultFileStoragePath
+	}
 
 	if envServerHost := os.Getenv("SERVER_ADDRESS"); envServerHost != "" && configValidator.IsValidServerHost(envServerHost) == nil {
 		*serverHost = envServerHost
@@ -47,9 +50,14 @@ func Init() Config {
 		}
 	}
 
+	if envFileStoragePath := os.Getenv("FILE_STORAGE_PATH"); envFileStoragePath != "" {
+		*fileStoragePath = envFileStoragePath
+	}
+
 	result := Config{
-		ServerHost: *serverHost,
-		BaseURL:    *baseURL,
+		ServerHost:      *serverHost,
+		BaseURL:         *baseURL,
+		FileStoragePath: *fileStoragePath,
 	}
 
 	return result
