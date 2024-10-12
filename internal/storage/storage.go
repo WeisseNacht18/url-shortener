@@ -12,7 +12,7 @@ import (
 type Storage struct {
 	shortUrls       map[string]string
 	FileStoragePath string
-	lastId          int
+	lastID          int
 }
 
 type URLStorageData struct {
@@ -95,7 +95,7 @@ func New(fileStoragePath string) {
 	storage = Storage{}
 	storage.FileStoragePath = fileStoragePath
 	storage.shortUrls = GetConfigFromFile(fileStoragePath)
-	storage.lastId = len(storage.shortUrls)
+	storage.lastID = len(storage.shortUrls)
 
 }
 
@@ -103,21 +103,21 @@ func NewEmpty() {
 	storage = Storage{}
 	storage.FileStoragePath = "storage.txt"
 	storage.shortUrls = map[string]string{}
-	storage.lastId = 0
+	storage.lastID = 0
 }
 
-func NewWithMap(shortUrls map[string]string) { //переименовать на New
+func NewWithMap(shortUrls map[string]string) {
 	storage = Storage{}
 	storage.shortUrls = shortUrls
 	storage.FileStoragePath = "storage.txt"
-	storage.lastId = len(shortUrls)
+	storage.lastID = len(shortUrls)
 }
 
 func AddURLToStorage(url string) (result string) {
 	shortLink := shortlinkgenerator.GenerateShortLink()
 	storage.shortUrls[shortLink] = url
 	SaveLineToFile(shortLink, url)
-	storage.lastId += 1
+	storage.lastID += 1
 	return shortLink
 }
 
@@ -129,12 +129,11 @@ func GetURLFromStorage(shortURL string) (result string, ok bool) {
 func SaveLineToFile(shortURL string, url string) {
 
 	lineData := URLStorageData{
-		UUID:        uint(storage.lastId),
+		UUID:        uint(storage.lastID),
 		ShortURL:    shortURL,
 		OriginalURL: url,
 	}
 
-	logger.Logger.Infoln(storage.FileStoragePath)
 	producer, err := NewProducer(storage.FileStoragePath)
 	if err != nil {
 		logger.Logger.Fatalln(err)

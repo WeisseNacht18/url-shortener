@@ -175,14 +175,14 @@ func TestHandler_RedirectShortUrl(t *testing.T) {
 	}{
 		{
 			name: "redirect short URL with valid id #1",
-			url:  "/abcdefgh",
+			url:  "/abcdef",
 			want: want{
 				code: 307,
 			},
 		},
 		{
 			name: "redirect short URL with valid id #2",
-			url:  "/dcbahgfe",
+			url:  "/dcbahg",
 			want: want{
 				code: 307,
 			},
@@ -196,8 +196,8 @@ func TestHandler_RedirectShortUrl(t *testing.T) {
 		},
 	}
 	shortUrls := map[string]string{
-		"abcdefgh": "https://ya.ru",
-		"dcbahgfe": "https://mail.ru",
+		"abcdef": "https://ya.ru",
+		"dcbahg": "https://mail.ru",
 	}
 	storage.NewWithMap(shortUrls)
 	for _, test := range tests {

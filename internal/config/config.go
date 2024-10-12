@@ -20,9 +20,9 @@ type Config struct {
 }
 
 func New() Config {
-	serverHost := flag.String("a", "", "input server host")
+	serverHost := flag.String("a", defaultServerHost, "input server host")
 	baseURL := flag.String("b", "", "input base url")
-	fileStoragePath := flag.String("f", "", "input file storage path")
+	fileStoragePath := flag.String("f", defaultFileStoragePath, "input file storage path")
 
 	flag.Parse()
 
