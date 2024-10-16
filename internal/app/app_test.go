@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/WeisseNacht18/url-shortener/internal/http/handlers"
+	"github.com/WeisseNacht18/url-shortener/internal/http/handlers/api"
 	"github.com/WeisseNacht18/url-shortener/internal/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -138,7 +139,7 @@ func TestHandler_CreateShortUrlWithAPI(t *testing.T) {
 	storage.NewEmpty()
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			requestBody := handlers.ShortenRequest{
+			requestBody := api.ShortenRequest{
 				URL: test.data.url,
 			}
 			requestBytes, err := json.Marshal(requestBody)
@@ -147,7 +148,7 @@ func TestHandler_CreateShortUrlWithAPI(t *testing.T) {
 			request.Header.Set("Content-Type", test.data.contentType)
 			assert.NotNil(t, request)
 			w := httptest.NewRecorder()
-			handlers.CreateShortURLWithAPIHandler(w, request)
+			api.CreateShortURLWithAPIHandler(w, request)
 
 			res := w.Result()
 			assert.Equal(t, test.want.code, res.StatusCode)

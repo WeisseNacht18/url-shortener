@@ -143,8 +143,6 @@ func SaveLineToFile(shortURL string, url string) {
 }
 
 func GetConfigFromFile(filename string) map[string]string {
-	//проверить существует ли файл конфига. Если существует, то строчка за строчкой вычитать все хранилище
-
 	result := map[string]string{}
 
 	if _, err := os.Stat(storage.FileStoragePath); err != nil {
