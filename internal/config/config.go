@@ -2,54 +2,61 @@ package config
 
 import (
 	"flag"
-	"log"
 	"net/url"
 	"os"
 
-	configValidator "github.com/WeisseNacht18/url-shortener/internal/config/validator"
-)
-
-const (
-	defaultServerHost = "localhost:8080"
+	configValidator "github.com/WeisseNacht18/url-shortener/internal/validator"
 )
 
 type Config struct {
-	ServerHost string `env:"SERVER_ADDRESS"`
-	BaseURL    string `env:"BASE_URL"`
+	ServerHost      string `env:"SERVER_ADDRESS"`
+	BaseURL         string `env:"BASE_URL"`
+	FileStoragePath string `env:"FILE_STORAGE_PATH"`
 }
 
-func Init() Config {
+func NewConfig() Config {
+	result := Config{
+		ServerHost:      "localhost:8080",
+		BaseURL:         "",
+		FileStoragePath: "storage.txt",
+	}
+
 	serverHost := flag.String("a", "", "input server host")
 	baseURL := flag.String("b", "", "input base url")
+	fileStoragePath := flag.String("f", "", "input file storage path")
 
 	flag.Parse()
 
-	if *serverHost == "" || configValidator.IsValidServerHost(*serverHost) != nil {
-		*serverHost = defaultServerHost
+	if *serverHost != "" && configValidator.IsValidServerHost(*serverHost) == nil {
+		result.ServerHost = *serverHost
 	}
 
 	_, err := url.Parse(*baseURL)
-	if *baseURL == "" || err != nil {
-		*baseURL = "http://" + *serverHost
+	if *baseURL != "" || err == nil {
+		result.BaseURL = *baseURL
 	}
 
-	log.Println(*serverHost)
-	log.Println(*baseURL)
+	if *fileStoragePath != "" {
+		result.FileStoragePath = *fileStoragePath
+	}
 
 	if envServerHost := os.Getenv("SERVER_ADDRESS"); envServerHost != "" && configValidator.IsValidServerHost(envServerHost) == nil {
-		*serverHost = envServerHost
+		result.ServerHost = envServerHost
 	}
 
 	if envBaseURL := os.Getenv("BASE_URL"); envBaseURL != "" {
 		_, err = url.Parse(envBaseURL)
 		if err == nil {
-			*baseURL = envBaseURL
+			result.BaseURL = envBaseURL
 		}
 	}
 
-	result := Config{
-		ServerHost: *serverHost,
-		BaseURL:    *baseURL,
+	if envFileStoragePath := os.Getenv("FILE_STORAGE_PATH"); envFileStoragePath != "" {
+		result.FileStoragePath = envFileStoragePath
+	}
+
+	if result.BaseURL == "" {
+		result.BaseURL = "http://" + result.ServerHost
 	}
 
 	return result

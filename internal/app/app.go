@@ -1,28 +1,31 @@
 package app
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/WeisseNacht18/url-shortener/internal/config"
 	"github.com/WeisseNacht18/url-shortener/internal/http/handlers"
+	"github.com/WeisseNacht18/url-shortener/internal/http/middlewares"
+	"github.com/WeisseNacht18/url-shortener/internal/logger"
 	"github.com/WeisseNacht18/url-shortener/internal/storage"
 	"github.com/go-chi/chi/v5"
 )
 
 func Run(config config.Config) {
-	storage.Init()
-	handlers.Init(config.BaseURL)
+	logger.Init()
+
+	storage.NewURLStorage(config.FileStoragePath)
+	handlers.New(config.BaseURL)
 
 	router := chi.NewRouter()
 
-	router.Post("/", handlers.CreateShortURLHandler)
-	router.Get("/{id}", handlers.RedirectHandler)
+	middlewares.AddMiddlewaresToRouter(router)
+
+	handlers.AddHandlersToRouter(router)
 
 	err := http.ListenAndServe(config.ServerHost, router)
 
-	log.Printf("Starting server on %s", config.ServerHost)
 	if err != nil {
-		log.Fatalf("Server error: %v", err)
+		logger.Logger.Fatalf("Server error: %v", err)
 	}
 }
