@@ -6,6 +6,6 @@ import (
 )
 
 func main() {
-	config := config.New()
+	config := config.NewConfig()
 	app.Run(config)
 }

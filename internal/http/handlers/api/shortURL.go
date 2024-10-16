@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"io"
 	"net/http"
 	"strings"
 
@@ -29,13 +28,9 @@ type (
 
 func CreateShortURLWithAPIHandler(w http.ResponseWriter, r *http.Request) {
 	if strings.Contains(r.Header.Get("Content-Type"), "application/json") {
-		body, err := io.ReadAll(r.Body)
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
 		var content ShortenRequest
-		err = json.Unmarshal(body, &content)
+
+		err := json.NewDecoder(r.Body).Decode(&content)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			return

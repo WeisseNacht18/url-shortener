@@ -9,7 +9,7 @@ import (
 	shortlinkgenerator "github.com/WeisseNacht18/url-shortener/internal/shortLinkGenerator"
 )
 
-type Storage struct {
+type URLStorage struct {
 	shortUrls       map[string]string
 	FileStoragePath string
 	lastID          int
@@ -22,7 +22,7 @@ type URLStorageData struct {
 }
 
 var (
-	storage Storage
+	storage URLStorage
 )
 
 type Producer struct {
@@ -91,23 +91,23 @@ func (c *Consumer) ReadStorageLine() (*URLStorageData, error) {
 	return &line, nil
 }
 
-func New(fileStoragePath string) {
-	storage = Storage{}
+func NewURLStorage(fileStoragePath string) URLStorage {
+	storage = URLStorage{}
 	storage.FileStoragePath = fileStoragePath
 	storage.shortUrls = GetConfigFromFile(fileStoragePath)
 	storage.lastID = len(storage.shortUrls)
-
+	return storage
 }
 
-func NewEmpty() {
-	storage = Storage{}
+func NewEmptyURLStorage() {
+	storage = URLStorage{}
 	storage.FileStoragePath = "storage.txt"
 	storage.shortUrls = map[string]string{}
 	storage.lastID = 0
 }
 
-func NewWithMap(shortUrls map[string]string) {
-	storage = Storage{}
+func NewURLStorageWithMap(shortUrls map[string]string) {
+	storage = URLStorage{}
 	storage.shortUrls = shortUrls
 	storage.FileStoragePath = "storage.txt"
 	storage.lastID = len(shortUrls)
