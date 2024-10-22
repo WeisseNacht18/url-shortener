@@ -13,9 +13,9 @@ import (
 )
 
 const (
-	DATABASE_STORAGE = "database_storage"
-	FILE_STORAGE     = "file_storage"
-	LOCAL_STORAGE    = "local_storage"
+	DatabaseStorage = "database_storage"
+	FileStorage     = "file_storage"
+	LocalStorage    = "local_storage"
 )
 
 type URLStorage struct {
@@ -104,21 +104,21 @@ func (c *Consumer) ReadStorageLine() (*URLStorageData, error) {
 func NewURLStorage(fileStoragePath string, databaseDSN string) URLStorage {
 	storage = URLStorage{}
 
-	storage.Type = LOCAL_STORAGE
+	storage.Type = LocalStorage
 	storage.shortUrls = map[string]string{}
 
 	if fileStoragePath != "" {
-		storage.Type = FILE_STORAGE
+		storage.Type = FileStorage
 		storage.FileStoragePath = fileStoragePath
 		logger.Logger.Infoln(fileStoragePath)
 	}
 
 	if databaseDSN != "" {
-		storage.Type = DATABASE_STORAGE
+		storage.Type = DatabaseStorage
 		logger.Logger.Infoln(databaseDSN)
 	}
 
-	if storage.Type == FILE_STORAGE {
+	if storage.Type == FileStorage {
 		storage.shortUrls = GetConfigFromFile(fileStoragePath)
 	}
 
@@ -128,7 +128,7 @@ func NewURLStorage(fileStoragePath string, databaseDSN string) URLStorage {
 
 func NewEmptyURLStorage() {
 	storage = URLStorage{}
-	storage.Type = LOCAL_STORAGE
+	storage.Type = LocalStorage
 	storage.FileStoragePath = "storage.txt"
 	storage.shortUrls = map[string]string{}
 	storage.lastID = 0
@@ -136,7 +136,7 @@ func NewEmptyURLStorage() {
 
 func NewURLStorageWithMap(shortUrls map[string]string) {
 	storage = URLStorage{}
-	storage.Type = LOCAL_STORAGE
+	storage.Type = LocalStorage
 	storage.shortUrls = shortUrls
 	storage.FileStoragePath = "storage.txt"
 	storage.lastID = len(shortUrls)
@@ -145,16 +145,16 @@ func NewURLStorageWithMap(shortUrls map[string]string) {
 func AddURLToStorage(url string) (result string) {
 	shortLink := shortlinkgenerator.GenerateShortLink()
 
-	if storage.Type == FILE_STORAGE {
+	if storage.Type == FileStorage {
 		SaveLineToFile(shortLink, url)
 	}
 
-	if storage.Type == LOCAL_STORAGE || storage.Type == FILE_STORAGE {
+	if storage.Type == LocalStorage || storage.Type == FileStorage {
 		storage.shortUrls[shortLink] = url
 		storage.lastID += 1
 	}
 
-	if storage.Type == DATABASE_STORAGE {
+	if storage.Type == DatabaseStorage {
 		err := SaveURLToDatabase(shortLink, url)
 		if err != nil {
 			logger.Logger.Infoln(err)
@@ -165,11 +165,11 @@ func AddURLToStorage(url string) (result string) {
 }
 
 func GetURLFromStorage(shortURL string) (result string, ok bool) {
-	if storage.Type == LOCAL_STORAGE || storage.Type == FILE_STORAGE {
+	if storage.Type == LocalStorage || storage.Type == FileStorage {
 		result, ok = storage.shortUrls[shortURL]
 	}
 
-	if storage.Type == DATABASE_STORAGE {
+	if storage.Type == DatabaseStorage {
 		result, ok = GetURLFromDatabase(shortURL)
 		if !ok {
 			result, ok = storage.shortUrls[shortURL]
@@ -231,14 +231,14 @@ func GetURLFromDatabase(shortURL string) (result string, ok bool) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	var original_url string
+	var originalURL string
 
 	row := database.Database.QueryRowContext(ctx, "SELECT original_url FROM url WHERE short_url = $1 LIMIT 1", shortURL)
 
-	err := row.Scan(&original_url)
+	err := row.Scan(&originalURL)
 	if err != nil {
-		return original_url, false
+		return originalURL, false
 	}
 
-	return original_url, true
+	return originalURL, true
 }
