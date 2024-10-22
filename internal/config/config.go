@@ -2,6 +2,7 @@ package config
 
 import (
 	"flag"
+	"log"
 	"net/url"
 	"os"
 
@@ -19,8 +20,8 @@ func NewConfig() Config {
 	result := Config{
 		ServerHost:      "localhost:8080",
 		BaseURL:         "",
-		FileStoragePath: "storage.txt",
-		DatabaseDSN:     "host=localhost port=5432 user=postgres password=postgres dbname=shortener sslmode=disable",
+		FileStoragePath: "",
+		DatabaseDSN:     "",
 	}
 
 	serverHost := flag.String("a", "", "input server host")
@@ -61,10 +62,6 @@ func NewConfig() Config {
 		result.FileStoragePath = envFileStoragePath
 	}
 
-	if envFileStoragePath := os.Getenv("FILE_STORAGE_PATH"); envFileStoragePath != "" {
-		result.FileStoragePath = envFileStoragePath
-	}
-
 	if envDatabaseDSN := os.Getenv("DATABASE_DSN"); envDatabaseDSN != "" {
 		result.DatabaseDSN = envDatabaseDSN
 	}
@@ -72,6 +69,8 @@ func NewConfig() Config {
 	if result.BaseURL == "" {
 		result.BaseURL = "http://" + result.ServerHost
 	}
+
+	log.Println(result.BaseURL, result.ServerHost, result.FileStoragePath, result.DatabaseDSN)
 
 	return result
 }

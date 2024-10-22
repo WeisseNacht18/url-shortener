@@ -15,13 +15,15 @@ import (
 func Run(config config.Config) {
 	logger.Init()
 
-	err := database.NewConnection(config.DatabaseDSN)
-	if err != nil {
-		logger.Logger.Fatalf("Database connection error: %v", err)
+	if config.DatabaseDSN != "" {
+		err := database.NewConnection(config.DatabaseDSN)
+		if err != nil {
+			logger.Logger.Fatalf("Database connection error: %v", err)
+		}
 	}
 	defer database.CloseConnection()
 
-	storage.NewURLStorage(config.FileStoragePath)
+	storage.NewURLStorage(config.FileStoragePath, config.DatabaseDSN)
 	handlers.New(config.BaseURL)
 
 	router := chi.NewRouter()
@@ -30,7 +32,7 @@ func Run(config config.Config) {
 
 	handlers.AddHandlersToRouter(router)
 
-	err = http.ListenAndServe(config.ServerHost, router)
+	err := http.ListenAndServe(config.ServerHost, router)
 
 	if err != nil {
 		logger.Logger.Fatalf("Server error: %v", err)
