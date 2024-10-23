@@ -168,9 +168,9 @@ func AddArrayOfURLToStorage(originalURLs map[string]string) (result map[string]s
 	urls := map[string]string{}
 	result = map[string]string{}
 
-	for correlationId, originalURL := range originalURLs {
+	for correlationID, originalURL := range originalURLs {
 		shortLink := shortlinkgenerator.GenerateShortLink()
-		result[correlationId] = shortLink
+		result[correlationID] = shortLink
 		urls[originalURL] = shortLink
 	}
 

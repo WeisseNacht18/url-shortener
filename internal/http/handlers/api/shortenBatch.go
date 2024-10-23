@@ -10,12 +10,12 @@ import (
 
 type (
 	ShortenBatchRequest struct {
-		CorrelationId string `json:"correlation_id"`
+		CorrelationID string `json:"correlation_id"`
 		OriginalURL   string `json:"original_url"`
 	}
 
 	ShortenBatchResponse struct {
-		CorrelationId string `json:"correlation_id"`
+		CorrelationID string `json:"correlation_id"`
 		ShortURL      string `json:"short_url"`
 	}
 )
@@ -33,17 +33,17 @@ func CreateShortURLBatchHandler(w http.ResponseWriter, r *http.Request) {
 		data := map[string]string{}
 
 		for _, v := range content {
-			data[v.CorrelationId] = v.OriginalURL
+			data[v.CorrelationID] = v.OriginalURL
 		}
 
 		result := storage.AddArrayOfURLToStorage(data)
 
 		var response []ShortenBatchResponse
 
-		for CorrelationId, ShortURL := range result {
+		for correlationID, shortURL := range result {
 			response = append(response, ShortenBatchResponse{
-				CorrelationId,
-				ShortURL,
+				CorrelationID: correlationID,
+				ShortURL:      BaseURL + "/" + shortURL,
 			})
 		}
 
