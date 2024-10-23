@@ -19,9 +19,15 @@ func CreateShortURLHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		link := string(body)
-		shortLink := storage.AddURLToStorage(link)
+		shortLink, hasURL := storage.AddURLToStorage(link)
 		w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
-		w.WriteHeader(http.StatusCreated)
+
+		if hasURL {
+			w.WriteHeader(http.StatusConflict)
+		} else {
+			w.WriteHeader(http.StatusCreated)
+		}
+
 		content := []byte(BaseURL + "/" + shortLink)
 		w.Write(content)
 	} else {
