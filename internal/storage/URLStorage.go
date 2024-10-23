@@ -164,6 +164,41 @@ func AddURLToStorage(url string) (result string) {
 	return shortLink
 }
 
+func AddArrayOfURLToStorage(originalURLs map[string]string) (result map[string]string) {
+	urls := map[string]string{}
+	result = map[string]string{}
+
+	for correlationId, originalURL := range originalURLs {
+		shortLink := shortlinkgenerator.GenerateShortLink()
+		result[correlationId] = shortLink
+		urls[originalURL] = shortLink
+	}
+
+	if storage.Type == FileStorage {
+		for originalURL, shortURL := range urls {
+			SaveLineToFile(shortURL, originalURL)
+		}
+	}
+
+	if storage.Type == LocalStorage || storage.Type == FileStorage {
+		for originalURL, shortURL := range urls {
+			storage.shortUrls[shortURL] = originalURL
+			storage.lastID += 1
+		}
+	}
+
+	if storage.Type == DatabaseStorage {
+		for originalURL, shortURL := range urls {
+			err := SaveURLToDatabase(shortURL, originalURL)
+			if err != nil {
+				logger.Logger.Infoln(err)
+			}
+		}
+	}
+
+	return
+}
+
 func GetURLFromStorage(shortURL string) (result string, ok bool) {
 	if storage.Type == LocalStorage || storage.Type == FileStorage {
 		result, ok = storage.shortUrls[shortURL]

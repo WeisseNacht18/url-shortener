@@ -9,6 +9,7 @@ func AddHandlersToRouter(router *chi.Mux) {
 	api.New(BaseURL)
 	router.Post("/", CreateShortURLHandler)
 	router.Post("/api/shorten", api.CreateShortURLWithAPIHandler)
+	router.Post("/api/shorten/batch", api.CreateShortURLBatchHandler)
 	router.Get("/ping", PingHandler)
 	router.Get("/{id}", RedirectHandler)
 }
