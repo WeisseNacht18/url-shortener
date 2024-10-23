@@ -142,8 +142,9 @@ func NewURLStorageWithMap(shortUrls map[string]string) {
 	storage.lastID = len(shortUrls)
 }
 
-func AddURLToStorage(url string) (result string) {
-	shortLink := shortlinkgenerator.GenerateShortLink()
+func AddURLToStorage(url string) (shortLink string, hasURL bool) {
+	shortLink = shortlinkgenerator.GenerateShortLink()
+	hasURL = false
 
 	if storage.Type == FileStorage {
 		SaveLineToFile(shortLink, url)
@@ -155,13 +156,40 @@ func AddURLToStorage(url string) (result string) {
 	}
 
 	if storage.Type == DatabaseStorage {
-		err := SaveURLToDatabase(shortLink, url)
-		if err != nil {
-			logger.Logger.Infoln(err)
+		shortLinkDB, responseHasURL := CheckURLInDatabase(url)
+
+		if responseHasURL {
+			shortLink = shortLinkDB
+			hasURL = responseHasURL
+		} else {
+			err := SaveURLToDatabase(shortLink, url)
+			if err != nil {
+				logger.Logger.Infoln(err)
+			}
 		}
 	}
 
-	return shortLink
+	return
+}
+
+func CheckURLInDatabase(originalURL string) (shortLink string, hasURL bool) {
+	hasURL = false
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	row := database.Database.QueryRowContext(ctx, "SELECT short_url FROM url WHERE original_url = $1 LIMIT 1", originalURL)
+
+	err := row.Scan(&shortLink)
+
+	if err != nil {
+		logger.Logger.Infoln(err)
+		return
+	}
+
+	hasURL = true
+
+	return
 }
 
 func AddArrayOfURLToStorage(originalURLs map[string]string) (result map[string]string) {
