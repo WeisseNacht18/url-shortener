@@ -62,7 +62,7 @@ func AddArrayOfURLToStorage(originalURLs map[string]string) (result map[string]s
 	for correlationID, originalURL := range originalURLs {
 		shortLink := shortlinkgenerator.GenerateShortLink()
 		result[correlationID] = shortLink
-		ok := storage.AddURL(shortLink, originalURL)
+		ok := storage.AddURL(originalURL, shortLink)
 		if !ok {
 			logger.Logger.Fatalln("error: don't add url to storage")
 		}
