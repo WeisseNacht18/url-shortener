@@ -13,7 +13,7 @@ type Response struct {
 }
 
 func URLsHandler(w http.ResponseWriter, r *http.Request) {
-	userID := 1
+	userID := r.Header.Get("x-user-id")
 
 	urls := storage.GetAllURLsFromStorage(userID)
 

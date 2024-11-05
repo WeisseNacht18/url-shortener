@@ -6,6 +6,6 @@ import (
 
 func AddMiddlewaresToRouter(router *chi.Mux) {
 	router.Use(WithLogging)
-	router.Use(WithGzip)
 	router.Use(WithAuthentification)
+	router.Use(WithGzip)
 }

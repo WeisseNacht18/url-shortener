@@ -43,8 +43,8 @@ func NewDatabaseStorage(dsn string) *DatabaseStorage {
 	return &storage
 }
 
-func (storage *DatabaseStorage) AddURL(originalURL string, shortURL string) (ok bool) {
-	err := storage.SaveURLToDatabase(shortURL, originalURL)
+func (storage *DatabaseStorage) AddURL(userID string, originalURL string, shortURL string) (ok bool) {
+	err := storage.SaveURLToDatabase(userID, shortURL, originalURL)
 	if err == nil {
 		ok = true
 	} else {
@@ -53,12 +53,12 @@ func (storage *DatabaseStorage) AddURL(originalURL string, shortURL string) (ok 
 	return
 }
 
-func (storage *DatabaseStorage) GetURL(shortURL string) (originalURL string, ok bool) {
-	originalURL, ok = storage.GetURLFromDatabase(shortURL)
+func (storage *DatabaseStorage) GetURL(userID string, shortURL string) (originalURL string, ok bool) {
+	originalURL, ok = storage.GetURLFromDatabase(userID, shortURL)
 	return
 }
 
-func (storage *DatabaseStorage) GetAllURLs(userID int) map[string]string {
+func (storage *DatabaseStorage) GetAllURLs(userID string) map[string]string {
 	return storage.GetAllURLsFromDatabase(userID)
 }
 
@@ -71,13 +71,13 @@ func (storage *DatabaseStorage) CheckStorage() error {
 	return err
 }
 
-func (storage *DatabaseStorage) CheckURL(originalURL string) (shortLink string, hasURL bool) {
+func (storage *DatabaseStorage) CheckURL(userID string, originalURL string) (shortLink string, hasURL bool) {
 	hasURL = false
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	row := storage.database.QueryRowContext(ctx, "SELECT short_url FROM url WHERE original_url = $1 LIMIT 1", originalURL)
+	row := storage.database.QueryRowContext(ctx, "SELECT short_url FROM url WHERE original_url = $1 AND user_id = $2 LIMIT 1", originalURL, userID)
 
 	err := row.Scan(&shortLink)
 
@@ -95,22 +95,22 @@ func (storage *DatabaseStorage) Close() {
 	storage.database.Close()
 }
 
-func (storage *DatabaseStorage) SaveURLToDatabase(shortURL string, originalURL string) error {
+func (storage *DatabaseStorage) SaveURLToDatabase(userID string, shortURL string, originalURL string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	_, err := storage.database.ExecContext(ctx, "INSERT INTO url (short_url, original_url) VALUES ($1, $2)", shortURL, originalURL)
+	_, err := storage.database.ExecContext(ctx, "INSERT INTO url (short_url, original_url, user_id) VALUES ($1, $2, $3)", shortURL, originalURL, userID)
 
 	return err
 }
 
-func (storage *DatabaseStorage) GetURLFromDatabase(shortURL string) (result string, ok bool) {
+func (storage *DatabaseStorage) GetURLFromDatabase(userID string, shortURL string) (result string, ok bool) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
 	var originalURL string
 
-	row := storage.database.QueryRowContext(ctx, "SELECT original_url FROM url WHERE short_url = $1 LIMIT 1", shortURL)
+	row := storage.database.QueryRowContext(ctx, "SELECT original_url FROM url WHERE short_url = $1 AND user_id = $2 LIMIT 1", shortURL, userID)
 
 	err := row.Scan(&originalURL)
 	if err != nil {
@@ -120,23 +120,21 @@ func (storage *DatabaseStorage) GetURLFromDatabase(shortURL string) (result stri
 	return originalURL, true
 }
 
-func (storage *DatabaseStorage) GetAllURLsFromDatabase(userID int) map[string]string {
+func (storage *DatabaseStorage) GetAllURLsFromDatabase(userID string) map[string]string {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
 	result := map[string]string{}
 
 	type Row struct {
-		id          int
-		originalURL string
-		shortURL    string
-		userID      int
+		originalURL string `db:"original_url"`
+		shortURL    string `db:"short_url"`
 	}
 
 	var rows []Row
 
 	//или сделать так, что нам будут возвращаться только original_url и shortURL
-	row := storage.database.QueryRowContext(ctx, "SELECT * original_url FROM url WHERE user_id = $1", userID)
+	row := storage.database.QueryRowContext(ctx, "SELECT original_url, short_url FROM url WHERE user_id = $1", userID)
 
 	err := row.Scan(&rows)
 	if err != nil {

@@ -58,14 +58,17 @@ func WithAuthentification(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user, err := r.Cookie("auth")
 
-		userID := GetUserID(user.Value)
+		if err == nil {
+			userID := GetUserID(user.Value)
 
-		if err == nil && storage.CheckkUserIDWithToken(userID, user.Value) {
-			next.ServeHTTP(w, r)
-			return
+			if err == nil && storage.CheckUserIDWithToken(userID, user.Value) {
+				r.Header.Set("x-user-id", userID)
+				next.ServeHTTP(w, r)
+				return
+			}
 		}
 
-		userID, err = generator.GenerateUserID()
+		userID, err := generator.GenerateUserID()
 
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)

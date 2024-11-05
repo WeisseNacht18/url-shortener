@@ -36,7 +36,9 @@ func CreateShortURLWithAPIHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		shortLink, hasURL := storage.AddURLToStorage(content.URL)
+		userID := r.Header.Get("x-user-id")
+
+		shortLink, hasURL := storage.AddURLToStorage(userID, content.URL)
 
 		response := ShortenResponse{
 			Result: BaseURL + "/" + shortLink,

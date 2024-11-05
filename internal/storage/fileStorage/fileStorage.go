@@ -8,54 +8,58 @@ import (
 	"github.com/WeisseNacht18/url-shortener/internal/logger"
 )
 
-type FileStorage struct {
+type Container struct {
 	ShortURLs    map[string]string
-	originalURLs map[string]string
-	Path         string
-	LastID       int
+	OriginalURLs map[string]string
+}
+
+type FileStorage struct {
+	Users  map[string]Container
+	Path   string
+	LastID int
 }
 
 func NewFileStorage(path string) *FileStorage {
-	fromFile := GetConfigFromFile(path)
-	reverseFromFile := changeKV(fromFile)
+	//fromFile := GetConfigFromFile(path) //Придумать как это запихать в структуру контейнера и вставить в контейнер
+	//reverseFromFile := changeKV(fromFile)
 
 	storage := FileStorage{
-		ShortURLs:    fromFile,
-		originalURLs: reverseFromFile,
-		Path:         path,
+		Users: map[string]Container{},
+
+		Path: path,
 	}
 
 	return &storage
 }
 
-func (storage *FileStorage) AddURL(originalURL string, shortURL string) (ok bool) {
-	_, hasURL := storage.originalURLs[originalURL]
+func (storage *FileStorage) AddURL(userID string, originalURL string, shortURL string) (ok bool) {
+	_, hasURL := storage.Users[userID].OriginalURLs[originalURL]
 	if hasURL {
 		ok = false
 		return
 	}
 	ok = true
-	storage.ShortURLs[shortURL] = originalURL
-	storage.originalURLs[originalURL] = shortURL
-	storage.SaveLineToFile(shortURL, originalURL)
+	storage.Users[userID].ShortURLs[shortURL] = originalURL
+	storage.Users[userID].OriginalURLs[originalURL] = shortURL
+	storage.SaveLineToFile(userID, shortURL, originalURL)
 	return
 }
 
-func (storage *FileStorage) GetURL(shortURL string) (originalURL string, ok bool) {
-	originalURL, ok = storage.ShortURLs[shortURL]
+func (storage *FileStorage) GetURL(userID string, shortURL string) (originalURL string, ok bool) {
+	originalURL, ok = storage.Users[userID].ShortURLs[shortURL]
 	return
 }
 
-func (storage *FileStorage) GetAllURLs(userID int) map[string]string {
-	return storage.ShortURLs
+func (storage *FileStorage) GetAllURLs(userID string) map[string]string {
+	return storage.Users[userID].ShortURLs
 }
 
 func (storage *FileStorage) CheckStorage() error {
 	return nil
 }
 
-func (storage *FileStorage) CheckURL(originalURL string) (string, bool) {
-	val, ok := storage.originalURLs[originalURL]
+func (storage *FileStorage) CheckURL(userID string, originalURL string) (string, bool) {
+	val, ok := storage.Users[userID].OriginalURLs[originalURL]
 	return val, ok
 }
 
@@ -67,6 +71,7 @@ type URLStorageData struct {
 	UUID        uint   `json:"uuid"`
 	ShortURL    string `json:"short_url"`
 	OriginalURL string `json:"original_url"`
+	UserID      string `json:"user_id"`
 }
 
 type Consumer struct {
@@ -158,11 +163,12 @@ func (p *Producer) WriteStorageLine(storageLine *URLStorageData) error {
 	return p.writer.Flush()
 }
 
-func (storage *FileStorage) SaveLineToFile(shortURL string, url string) {
+func (storage *FileStorage) SaveLineToFile(userID string, shortURL string, url string) {
 	lineData := URLStorageData{
 		UUID:        uint(storage.LastID),
 		ShortURL:    shortURL,
 		OriginalURL: url,
+		UserID:      userID,
 	}
 
 	producer, err := NewProducer(storage.Path)
