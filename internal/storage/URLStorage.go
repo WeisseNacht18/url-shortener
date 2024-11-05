@@ -1,8 +1,8 @@
 package storage
 
 import (
+	"github.com/WeisseNacht18/url-shortener/internal/generator"
 	"github.com/WeisseNacht18/url-shortener/internal/logger"
-	shortlinkgenerator "github.com/WeisseNacht18/url-shortener/internal/shortLinkGenerator"
 	databasestorage "github.com/WeisseNacht18/url-shortener/internal/storage/databaseStorage"
 	filestorage "github.com/WeisseNacht18/url-shortener/internal/storage/fileStorage"
 	localstorage "github.com/WeisseNacht18/url-shortener/internal/storage/localStoarge"
@@ -11,12 +11,14 @@ import (
 type Storage interface {
 	AddURL(string, string) bool
 	GetURL(string) (string, bool)
+	GetAllURLs(int) map[string]string
 	CheckStorage() error
 	CheckURL(string) (string, bool)
 	Close()
 }
 
 var storage Storage
+var userTokens map[string]string
 
 func NewURLStorage(fileStoragePath string, databaseDSN string) {
 	if databaseDSN != "" {
@@ -41,7 +43,7 @@ func NewURLStorageWithMap(shortUrls map[string]string) {
 }
 
 func AddURLToStorage(url string) (shortURL string, hasURL bool) {
-	shortLink := shortlinkgenerator.GenerateShortLink()
+	shortLink := generator.GenerateShortLink()
 
 	shortURL, hasURL = storage.CheckURL(url)
 
@@ -60,7 +62,7 @@ func AddArrayOfURLToStorage(originalURLs map[string]string) (result map[string]s
 	result = map[string]string{}
 
 	for correlationID, originalURL := range originalURLs {
-		shortLink := shortlinkgenerator.GenerateShortLink()
+		shortLink := generator.GenerateShortLink()
 		result[correlationID] = shortLink
 		ok := storage.AddURL(originalURL, shortLink)
 		if !ok {
@@ -75,8 +77,35 @@ func GetURLFromStorage(shortURL string) (result string, ok bool) {
 	return storage.GetURL(shortURL)
 }
 
+func GetAllURLsFromStorage(userID int) map[string]string {
+	return storage.GetAllURLs(userID)
+}
+
 func CheckConnection() error {
 	return storage.CheckStorage()
+}
+
+func CheckkUserID(userID string) bool {
+	_, ok := userTokens[userID]
+	return ok
+}
+
+func CheckkUserIDWithToken(userID string, token string) bool {
+	return userTokens[userID] == token
+}
+
+func AddUserID(userID string) bool {
+	if !CheckkUserID(userID) {
+		userTokens[userID] = ""
+	}
+	return false
+}
+
+func AddUserIDWithToken(userID string, token string) bool {
+	if !CheckkUserID(userID) {
+		userTokens[userID] = token
+	}
+	return false
 }
 
 func Close() {

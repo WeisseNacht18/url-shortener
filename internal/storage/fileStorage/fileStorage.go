@@ -46,6 +46,10 @@ func (storage *FileStorage) GetURL(shortURL string) (originalURL string, ok bool
 	return
 }
 
+func (storage *FileStorage) GetAllURLs(userID int) map[string]string {
+	return storage.ShortURLs
+}
+
 func (storage *FileStorage) CheckStorage() error {
 	return nil
 }
@@ -155,7 +159,6 @@ func (p *Producer) WriteStorageLine(storageLine *URLStorageData) error {
 }
 
 func (storage *FileStorage) SaveLineToFile(shortURL string, url string) {
-
 	lineData := URLStorageData{
 		UUID:        uint(storage.LastID),
 		ShortURL:    shortURL,

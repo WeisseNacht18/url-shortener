@@ -14,16 +14,20 @@ func NewLocalStorage() *LocalStorage {
 	return &storage
 }
 
-func (storage *LocalStorage) AddURL(originalURL string, shortURL string) (ok bool) {
+func (storage *LocalStorage) AddURL(userID string, originalURL string, shortURL string) (ok bool) {
 	ok = true
 	storage.ShortURLs[shortURL] = originalURL
 	storage.originalURLs[originalURL] = shortURL
 	return
 }
 
-func (storage *LocalStorage) GetURL(shortURL string) (originalURL string, ok bool) {
+func (storage *LocalStorage) GetURL(userID string, shortURL string) (originalURL string, ok bool) {
 	originalURL, ok = storage.ShortURLs[shortURL]
 	return
+}
+
+func (storage *LocalStorage) GetAllURLs(userID int) map[string]string {
+	return storage.ShortURLs
 }
 
 func (storage *LocalStorage) CheckStorage() error {
