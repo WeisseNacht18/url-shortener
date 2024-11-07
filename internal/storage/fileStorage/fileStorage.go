@@ -39,6 +39,10 @@ func (storage *FileStorage) AddURL(userID string, originalURL string, shortURL s
 		return
 	}
 	ok = true
+	storage.Users[userID] = Container{
+		ShortURLs:    map[string]string{},
+		OriginalURLs: map[string]string{},
+	}
 	storage.Users[userID].ShortURLs[shortURL] = originalURL
 	storage.Users[userID].OriginalURLs[originalURL] = shortURL
 	storage.SaveLineToFile(userID, shortURL, originalURL)

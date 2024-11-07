@@ -13,7 +13,7 @@ func AddHandlersToRouter(router *chi.Mux) {
 	router.Post("/api/shorten/batch", api.CreateShortURLBatchHandler)
 	router.Get("/ping", PingHandler)
 	router.Get("/{id}", RedirectHandler)
-	router.Get("/user/urls", user.URLsHandler)
+	router.Get("/api/user/urls", user.URLsHandler)
 }
 
 var (

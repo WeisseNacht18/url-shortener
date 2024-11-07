@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/WeisseNacht18/url-shortener/internal/generator"
+	"github.com/WeisseNacht18/url-shortener/internal/logger"
 	"github.com/WeisseNacht18/url-shortener/internal/storage"
 	"github.com/golang-jwt/jwt/v4"
 )
@@ -58,8 +59,10 @@ func WithAuthentification(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user, err := r.Cookie("auth")
 
+		userID := ""
+
 		if err == nil {
-			userID := GetUserID(user.Value)
+			userID = GetUserID(user.Value)
 
 			if err == nil && storage.CheckUserIDWithToken(userID, user.Value) {
 				r.Header.Set("x-user-id", userID)
@@ -68,22 +71,29 @@ func WithAuthentification(next http.Handler) http.Handler {
 			}
 		}
 
-		userID, err := generator.GenerateUserID()
+		if userID == "" {
+			userID, err = generator.GenerateUserID()
 
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
+			if err != nil {
+				logger.Logger.Infoln(err)
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
 		}
 
 		jwtString, err := BuildJWTString(userID)
 
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
+			logger.Logger.Infoln(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
 
 		ok := storage.AddUserIDWithToken(userID, jwtString)
 
 		if !ok {
-			w.WriteHeader(http.StatusInternalServerError)
+			http.Error(w, "user couldn't add", http.StatusInternalServerError)
+			return
 		}
 
 		authCookie := &http.Cookie{
@@ -92,6 +102,13 @@ func WithAuthentification(next http.Handler) http.Handler {
 		}
 
 		http.SetCookie(w, authCookie)
+
+		if r.Method == http.MethodPost {
+			next.ServeHTTP(w, r)
+			r.Header.Set("x-user-id", userID)
+			return
+		}
+
 		w.WriteHeader(http.StatusUnauthorized)
 	})
 }

@@ -110,6 +110,7 @@ func AddUserIDWithToken(userID string, token string) bool {
 	log.Println("has user:", CheckUserID(userID))
 	if !CheckUserID(userID) {
 		userTokens[userID] = token
+		return true
 	}
 	return false
 }

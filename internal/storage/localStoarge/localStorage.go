@@ -18,7 +18,16 @@ func NewLocalStorage() *LocalStorage {
 }
 
 func (storage *LocalStorage) AddURL(userID string, originalURL string, shortURL string) (ok bool) {
+	_, hasURL := storage.Users[userID].OriginalURLs[originalURL]
+	if hasURL {
+		ok = false
+		return
+	}
 	ok = true
+	storage.Users[userID] = Container{
+		ShortURLs:    map[string]string{},
+		OriginalURLs: map[string]string{},
+	}
 	storage.Users[userID].ShortURLs[shortURL] = originalURL
 	storage.Users[userID].OriginalURLs[originalURL] = shortURL
 	return
