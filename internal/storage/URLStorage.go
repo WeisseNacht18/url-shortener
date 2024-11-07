@@ -1,8 +1,6 @@
 package storage
 
 import (
-	"log"
-
 	"github.com/WeisseNacht18/url-shortener/internal/generator"
 	"github.com/WeisseNacht18/url-shortener/internal/logger"
 	databasestorage "github.com/WeisseNacht18/url-shortener/internal/storage/databaseStorage"
@@ -16,6 +14,7 @@ type Storage interface {
 	GetAllURLs(string) map[string]string
 	CheckStorage() error
 	CheckURL(string, string) (string, bool)
+	GetUsers() map[string]string
 	Close()
 }
 
@@ -31,7 +30,8 @@ func NewURLStorage(fileStoragePath string, databaseDSN string) {
 	} else {
 		storage = localstorage.NewLocalStorage()
 	}
-	userTokens = map[string]string{}
+
+	userTokens = storage.GetUsers()
 }
 
 func NewEmptyURLStorage() {
@@ -99,20 +99,9 @@ func CheckUserIDWithToken(userID string, token string) bool {
 	return userTokens[userID] == token
 }
 
-func AddUserID(userID string) bool {
-	if !CheckUserID(userID) {
-		userTokens[userID] = ""
-	}
-	return false
-}
-
 func AddUserIDWithToken(userID string, token string) bool {
-	log.Println("has user:", CheckUserID(userID))
-	if !CheckUserID(userID) {
-		userTokens[userID] = token
-		return true
-	}
-	return false
+	userTokens[userID] = token
+	return true
 }
 
 func Close() {

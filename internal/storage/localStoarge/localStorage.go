@@ -1,9 +1,5 @@
 package localstorage
 
-import (
-	"github.com/WeisseNacht18/url-shortener/internal/logger"
-)
-
 type Container struct {
 	ShortURLs    map[string]string
 	OriginalURLs map[string]string
@@ -40,28 +36,15 @@ func (storage *LocalStorage) AddURL(userID string, originalURL string, shortURL 
 	storage.Users[userID].OriginalURLs[originalURL] = shortURL
 	storage.ShortURLs[shortURL] = originalURL
 	storage.OriginalURLs[originalURL] = shortURL
-
-	logOriginalURL, ok := storage.Users[userID].ShortURLs[shortURL]
-
-	logger.Logger.Infoln(string(logOriginalURL))
-
-	logOriginalURL, ok = storage.ShortURLs[shortURL]
-
-	logger.Logger.Infoln(string(logOriginalURL))
-
-	logger.Logger.Infoln(userID, originalURL, shortURL, ok)
-
 	return
 }
 
 func (storage *LocalStorage) GetURL(userID string, shortURL string) (originalURL string, ok bool) {
-
 	if userID != "" {
 		originalURL, ok = storage.Users[userID].ShortURLs[shortURL]
 	} else {
 		originalURL, ok = storage.ShortURLs[shortURL]
 	}
-	logger.Logger.Infoln(userID, originalURL, shortURL, ok)
 	return
 }
 
@@ -76,6 +59,10 @@ func (storage *LocalStorage) CheckStorage() error {
 func (storage *LocalStorage) CheckURL(userID, originalURL string) (string, bool) {
 	val, ok := storage.Users[userID].OriginalURLs[originalURL]
 	return val, ok
+}
+
+func (storage *LocalStorage) GetUsers() map[string]string {
+	return map[string]string{}
 }
 
 func (storage *LocalStorage) Close() {

@@ -10,8 +10,10 @@ import (
 func RedirectHandler(w http.ResponseWriter, r *http.Request) {
 	userID := r.Header.Get("x-user-id")
 	shortLink := r.RequestURI[1:]
-	logger.Logger.Infoln(shortLink, r.RequestURI)
 	value, ok := storage.GetURLFromStorage(userID, shortLink)
+
+	logger.Logger.Infoln(userID, "|", shortLink, "|", value, "|", ok)
+
 	if ok {
 		http.Redirect(w, r, value, http.StatusTemporaryRedirect)
 	} else {

@@ -91,6 +91,10 @@ func (storage *DatabaseStorage) CheckURL(userID string, originalURL string) (sho
 	return
 }
 
+func (storage *DatabaseStorage) GetUsers() map[string]string {
+	return map[string]string{}
+}
+
 func (storage *DatabaseStorage) Close() {
 	storage.database.Close()
 }

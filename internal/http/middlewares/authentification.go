@@ -65,17 +65,16 @@ func WithAuthentification(next http.Handler) http.Handler {
 			userID = GetUserID(user.Value)
 
 			if storage.CheckUserIDWithToken(userID, user.Value) {
-				r.Header.Set("x-user-id", userID)
 				next.ServeHTTP(w, r)
+				r.Header.Set("x-user-id", userID)
 				return
 			}
 		}
 
-		logger.Logger.Infoln(r.Method)
-
 		if r.RequestURI != "/api/user/urls" && r.Method == http.MethodGet {
+			r.Header.Set("x-user-id", userID)
 			next.ServeHTTP(w, r)
-			r.Header.Set("x-user-id", "")
+			return
 		}
 
 		if userID == "" {
@@ -111,8 +110,8 @@ func WithAuthentification(next http.Handler) http.Handler {
 		http.SetCookie(w, authCookie)
 
 		if r.RequestURI != "/api/user/urls" && r.Method == http.MethodPost {
-			next.ServeHTTP(w, r)
 			r.Header.Set("x-user-id", userID)
+			next.ServeHTTP(w, r)
 			return
 		}
 

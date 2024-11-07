@@ -14,19 +14,21 @@ type Container struct {
 }
 
 type FileStorage struct {
-	Users  map[string]Container
-	Path   string
-	LastID int
+	Users        map[string]Container
+	ShortURLs    map[string]string
+	OriginalURLs map[string]string
+	Path         string
+	LastID       uint
 }
 
 func NewFileStorage(path string) *FileStorage {
-	//fromFile := GetConfigFromFile(path) //Придумать как это запихать в структуру контейнера и вставить в контейнер
-	//reverseFromFile := changeKV(fromFile)
+	shortURLs, originalURLs, usersContainer := GetConfigFromFile(path)
 
 	storage := FileStorage{
-		Users: map[string]Container{},
-
-		Path: path,
+		Users:        usersContainer,
+		ShortURLs:    shortURLs,
+		OriginalURLs: originalURLs,
+		Path:         path,
 	}
 
 	return &storage
@@ -45,12 +47,19 @@ func (storage *FileStorage) AddURL(userID string, originalURL string, shortURL s
 	}
 	storage.Users[userID].ShortURLs[shortURL] = originalURL
 	storage.Users[userID].OriginalURLs[originalURL] = shortURL
+	storage.ShortURLs[shortURL] = originalURL
+	storage.OriginalURLs[originalURL] = shortURL
 	storage.SaveLineToFile(userID, shortURL, originalURL)
+	storage.LastID++
 	return
 }
 
 func (storage *FileStorage) GetURL(userID string, shortURL string) (originalURL string, ok bool) {
-	originalURL, ok = storage.Users[userID].ShortURLs[shortURL]
+	if userID != "" {
+		originalURL, ok = storage.Users[userID].ShortURLs[shortURL]
+	} else {
+		originalURL, ok = storage.ShortURLs[shortURL]
+	}
 	return
 }
 
@@ -65,6 +74,16 @@ func (storage *FileStorage) CheckStorage() error {
 func (storage *FileStorage) CheckURL(userID string, originalURL string) (string, bool) {
 	val, ok := storage.Users[userID].OriginalURLs[originalURL]
 	return val, ok
+}
+
+func (storage *FileStorage) GetUsers() map[string]string {
+	result := map[string]string{}
+
+	for userID, _ := range storage.Users {
+		result[userID] = ""
+	}
+
+	return result
 }
 
 func (storage *FileStorage) Close() {
@@ -110,11 +129,13 @@ func (c *Consumer) ReadStorageLine() (*URLStorageData, error) {
 	return &line, nil
 }
 
-func GetConfigFromFile(filename string) map[string]string {
-	result := map[string]string{}
+func GetConfigFromFile(filename string) (map[string]string, map[string]string, map[string]Container) {
+	shortURLs := map[string]string{}
+	originalURLs := map[string]string{}
+	container := map[string]Container{}
 
 	if _, err := os.Stat(filename); err != nil {
-		return result
+		return shortURLs, originalURLs, container
 	}
 
 	consumer, err := NewConsumer(filename)
@@ -127,10 +148,17 @@ func GetConfigFromFile(filename string) map[string]string {
 		if err != nil {
 			break
 		}
-		result[data.ShortURL] = data.OriginalURL
+		shortURLs[data.ShortURL] = data.OriginalURL
+		originalURLs[data.OriginalURL] = data.ShortURL
+		container[data.UserID] = Container{
+			ShortURLs:    map[string]string{},
+			OriginalURLs: map[string]string{},
+		}
+		container[data.UserID].ShortURLs[data.ShortURL] = data.OriginalURL
+		container[data.UserID].OriginalURLs[data.OriginalURL] = data.ShortURL
 	}
 
-	return result
+	return shortURLs, originalURLs, container
 }
 
 type Producer struct {
@@ -169,7 +197,7 @@ func (p *Producer) WriteStorageLine(storageLine *URLStorageData) error {
 
 func (storage *FileStorage) SaveLineToFile(userID string, shortURL string, url string) {
 	lineData := URLStorageData{
-		UUID:        uint(storage.LastID),
+		UUID:        storage.LastID,
 		ShortURL:    shortURL,
 		OriginalURL: url,
 		UserID:      userID,
@@ -181,12 +209,4 @@ func (storage *FileStorage) SaveLineToFile(userID string, shortURL string, url s
 	}
 
 	producer.WriteStorageLine(&lineData)
-}
-
-func changeKV(in map[string]string) (out map[string]string) {
-	out = make(map[string]string)
-	for k, v := range in {
-		out[v] = k
-	}
-	return
 }

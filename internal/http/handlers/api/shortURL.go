@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/WeisseNacht18/url-shortener/internal/logger"
 	"github.com/WeisseNacht18/url-shortener/internal/storage"
 )
 
@@ -37,6 +38,8 @@ func CreateShortURLWithAPIHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		userID := r.Header.Get("x-user-id")
+
+		logger.Logger.Infoln(userID, "|", content.URL)
 
 		shortLink, hasURL := storage.AddURLToStorage(userID, content.URL)
 
