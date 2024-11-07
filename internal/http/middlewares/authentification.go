@@ -16,8 +16,8 @@ type Claims struct {
 	UserID string
 }
 
-const TOKEN_EXP = time.Hour * 3
-const SECRET_KEY = "28ea60d2-3126-4c96-88bf-a3505d7b6ea0"
+const TokenExp = time.Hour * 3
+const SecretKey = "28ea60d2-3126-4c96-88bf-a3505d7b6ea0"
 
 func GetUserID(tokenString string) string {
 	claims := &Claims{}
@@ -26,7 +26,7 @@ func GetUserID(tokenString string) string {
 			if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
 			}
-			return []byte(SECRET_KEY), nil
+			return []byte(SecretKey), nil
 		})
 	if err != nil {
 		return ""
@@ -42,12 +42,12 @@ func GetUserID(tokenString string) string {
 func BuildJWTString(id string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, Claims{
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(TOKEN_EXP)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(TokenExp)),
 		},
 		UserID: id,
 	})
 
-	tokenString, err := token.SignedString([]byte(SECRET_KEY))
+	tokenString, err := token.SignedString([]byte(SecretKey))
 	if err != nil {
 		return "", err
 	}
@@ -64,7 +64,7 @@ func WithAuthentification(next http.Handler) http.Handler {
 		if err == nil {
 			userID = GetUserID(user.Value)
 
-			if err == nil && storage.CheckUserIDWithToken(userID, user.Value) {
+			if storage.CheckUserIDWithToken(userID, user.Value) {
 				r.Header.Set("x-user-id", userID)
 				next.ServeHTTP(w, r)
 				return
