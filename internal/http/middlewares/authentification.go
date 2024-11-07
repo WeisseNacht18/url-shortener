@@ -103,7 +103,7 @@ func WithAuthentification(next http.Handler) http.Handler {
 
 		http.SetCookie(w, authCookie)
 
-		if r.Method == http.MethodPost {
+		if r.RequestURI != "/api/user/urls" {
 			next.ServeHTTP(w, r)
 			r.Header.Set("x-user-id", userID)
 			return
