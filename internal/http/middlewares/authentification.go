@@ -71,6 +71,13 @@ func WithAuthentification(next http.Handler) http.Handler {
 			}
 		}
 
+		logger.Logger.Infoln(r.Method)
+
+		if r.RequestURI != "/api/user/urls" && r.Method == http.MethodGet {
+			next.ServeHTTP(w, r)
+			r.Header.Set("x-user-id", "")
+		}
+
 		if userID == "" {
 			userID, err = generator.GenerateUserID()
 
@@ -103,7 +110,7 @@ func WithAuthentification(next http.Handler) http.Handler {
 
 		http.SetCookie(w, authCookie)
 
-		if r.RequestURI != "/api/user/urls" {
+		if r.RequestURI != "/api/user/urls" && r.Method == http.MethodPost {
 			next.ServeHTTP(w, r)
 			r.Header.Set("x-user-id", userID)
 			return
