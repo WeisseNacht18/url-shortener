@@ -13,7 +13,9 @@ type LocalStorage struct {
 
 func NewLocalStorage() *LocalStorage {
 	storage := LocalStorage{
-		Users: map[string]Container{},
+		Users:        map[string]Container{},
+		ShortURLs:    map[string]string{},
+		OriginalURLs: map[string]string{},
 	}
 
 	return &storage
