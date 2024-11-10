@@ -43,8 +43,9 @@ func URLsHandler(w http.ResponseWriter, r *http.Request) {
 
 	logger.Logger.Infoln(string(content))
 
+	w.Header().Set("Content-Type", "application/json")
+
 	w.Write(content)
 
-	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 }
