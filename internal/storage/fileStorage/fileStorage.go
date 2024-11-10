@@ -87,7 +87,7 @@ func (storage *FileStorage) CheckURL(userID string, originalURL string) (val str
 func (storage *FileStorage) GetUsers() map[string]string {
 	result := map[string]string{}
 
-	for userID, _ := range storage.Users {
+	for userID := range storage.Users {
 		result[userID] = ""
 	}
 

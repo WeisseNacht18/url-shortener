@@ -158,16 +158,20 @@ func (storage *DatabaseStorage) GetAllURLsFromDatabase(userID string) map[string
 		shortURL    string `db:"short_url"`
 	}
 
-	var rows []Row
+	rows, err := storage.database.QueryContext(ctx, "SELECT original_url, short_url FROM url WHERE user_id = $1", userID)
 
-	row := storage.database.QueryRowContext(ctx, "SELECT original_url, short_url FROM url WHERE user_id = $1", userID)
-
-	err := row.Scan(&rows)
 	if err != nil {
 		return result
 	}
 
-	for _, row := range rows {
+	//тут перебрать каждую строку запроса и засунуть внутрь результата как показано ниже
+	for rows.Next() {
+		var row Row
+		err = rows.Scan(&row.originalURL, &row.shortURL)
+		if err != nil {
+			return result
+		}
+
 		result[row.shortURL] = row.originalURL
 	}
 

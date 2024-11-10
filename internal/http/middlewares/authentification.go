@@ -62,11 +62,13 @@ func WithAuthentification(next http.Handler) http.Handler {
 		userID := ""
 
 		if err == nil {
+			logger.Logger.Infoln("cookie was found")
 			userID = GetUserID(user.Value)
+			logger.Logger.Infoln(userID, "id of user")
 
 			if storage.CheckUserIDWithToken(userID, user.Value) {
-				next.ServeHTTP(w, r)
 				r.Header.Set("x-user-id", userID)
+				next.ServeHTTP(w, r)
 				return
 			}
 		}
@@ -94,6 +96,8 @@ func WithAuthentification(next http.Handler) http.Handler {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+
+		logger.Logger.Infoln(userID)
 
 		ok := storage.AddUserIDWithToken(userID, jwtString)
 
