@@ -159,8 +159,8 @@ func (storage *DatabaseStorage) GetAllURLsFromDatabase(userID string) map[string
 	}
 
 	rows, err := storage.database.QueryContext(ctx, "SELECT original_url, short_url FROM url WHERE user_id = $1", userID)
-
 	if err != nil {
+		logger.Logger.Infoln(err)
 		return result
 	}
 

@@ -21,7 +21,6 @@ func URLsHandler(w http.ResponseWriter, r *http.Request) {
 	urls := storage.GetAllURLsFromStorage(userID)
 
 	if len(urls) == 0 {
-		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
