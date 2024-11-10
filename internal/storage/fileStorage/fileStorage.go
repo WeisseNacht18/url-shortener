@@ -64,16 +64,24 @@ func (storage *FileStorage) GetURL(userID string, shortURL string) (originalURL 
 }
 
 func (storage *FileStorage) GetAllURLs(userID string) map[string]string {
-	return storage.Users[userID].ShortURLs
+	if userID != "" {
+		return storage.Users[userID].ShortURLs
+	} else {
+		return storage.ShortURLs
+	}
 }
 
 func (storage *FileStorage) CheckStorage() error {
 	return nil
 }
 
-func (storage *FileStorage) CheckURL(userID string, originalURL string) (string, bool) {
-	val, ok := storage.Users[userID].OriginalURLs[originalURL]
-	return val, ok
+func (storage *FileStorage) CheckURL(userID string, originalURL string) (val string, ok bool) {
+	if userID != "" {
+		val, ok = storage.Users[userID].OriginalURLs[originalURL]
+	} else {
+		val, ok = storage.OriginalURLs[originalURL]
+	}
+	return
 }
 
 func (storage *FileStorage) GetUsers() map[string]string {

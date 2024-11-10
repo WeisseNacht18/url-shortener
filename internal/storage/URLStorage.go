@@ -1,8 +1,9 @@
 package storage
 
 import (
+	"errors"
+
 	"github.com/WeisseNacht18/url-shortener/internal/generator"
-	"github.com/WeisseNacht18/url-shortener/internal/logger"
 	databasestorage "github.com/WeisseNacht18/url-shortener/internal/storage/databaseStorage"
 	filestorage "github.com/WeisseNacht18/url-shortener/internal/storage/fileStorage"
 	localstorage "github.com/WeisseNacht18/url-shortener/internal/storage/localStoarge"
@@ -24,7 +25,6 @@ var userTokens map[string]string
 func NewURLStorage(fileStoragePath string, databaseDSN string) {
 	if databaseDSN != "" {
 		storage = databasestorage.NewDatabaseStorage(databaseDSN)
-
 	} else if fileStoragePath != "" {
 		storage = filestorage.NewFileStorage(fileStoragePath)
 	} else {
@@ -60,15 +60,17 @@ func AddURLToStorage(userID string, url string) (shortURL string, hasURL bool) {
 	return
 }
 
-func AddArrayOfURLToStorage(userID string, originalURLs map[string]string) (result map[string]string) {
+func AddArrayOfURLToStorage(userID string, originalURLs map[string]string) (result map[string]string, err error) {
 	result = map[string]string{}
+	err = nil
 
 	for correlationID, originalURL := range originalURLs {
 		shortLink := generator.GenerateShortLink()
 		result[correlationID] = shortLink
 		ok := storage.AddURL(userID, originalURL, shortLink)
 		if !ok {
-			logger.Logger.Fatalln("error: don't add url to storage")
+			err = errors.New("don't add url to storage")
+			return
 		}
 	}
 
@@ -80,10 +82,6 @@ func GetURLFromStorage(userID string, shortURL string) (result string, ok bool) 
 }
 
 func GetAllURLsFromStorage(userID string) map[string]string {
-	_, ok := userTokens[userID]
-	if !ok {
-		return map[string]string{}
-	}
 	return storage.GetAllURLs(userID)
 }
 
