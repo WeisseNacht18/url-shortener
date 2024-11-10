@@ -42,7 +42,7 @@ func NewEmptyURLStorage() {
 func NewURLStorageWithMap(shortUrls map[string]string) {
 	storage = localstorage.NewLocalStorage()
 	for shortURL, originalURL := range shortUrls {
-		storage.AddURL("0", originalURL, shortURL)
+		storage.AddURL("", originalURL, shortURL)
 	}
 	userTokens = map[string]string{}
 }
@@ -53,10 +53,7 @@ func AddURLToStorage(userID string, url string) (shortURL string, hasURL bool) {
 	shortURL, hasURL = storage.CheckURL(userID, url)
 
 	if !hasURL {
-		ok := storage.AddURL(userID, url, shortLink)
-		if !ok {
-			logger.Logger.Fatalln("error: don't add url to storage")
-		}
+		hasURL = !storage.AddURL(userID, url, shortLink)
 		shortURL = shortLink
 	}
 
@@ -83,6 +80,10 @@ func GetURLFromStorage(userID string, shortURL string) (result string, ok bool) 
 }
 
 func GetAllURLsFromStorage(userID string) map[string]string {
+	_, ok := userTokens[userID]
+	if !ok {
+		return map[string]string{}
+	}
 	return storage.GetAllURLs(userID)
 }
 
