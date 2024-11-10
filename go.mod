@@ -4,7 +4,6 @@ go 1.22.5
 
 require (
 	github.com/decred/base58 v1.0.5
-	github.com/go-chi/chi v1.5.5
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/stretchr/testify v1.9.0
 	go.uber.org/zap v1.27.0

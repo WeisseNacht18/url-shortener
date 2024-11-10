@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/WeisseNacht18/url-shortener/internal/http/handlers/api"
 	"github.com/WeisseNacht18/url-shortener/internal/logger"
 	"github.com/WeisseNacht18/url-shortener/internal/storage"
 )
@@ -29,7 +30,7 @@ func URLsHandler(w http.ResponseWriter, r *http.Request) {
 
 	for shortURL, originalURL := range urls {
 		data = append(data, Response{
-			ShortURL:    shortURL,
+			ShortURL:    api.BaseURL + "/" + shortURL,
 			OriginalURL: originalURL,
 		})
 	}
