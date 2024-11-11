@@ -18,8 +18,9 @@ func CreateShortURLHandler(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
+		userID := r.Header.Get("x-user-id")
 		link := string(body)
-		shortLink, hasURL := storage.AddURLToStorage(link)
+		shortLink, hasURL := storage.AddURLToStorage(userID, link)
 		w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
 
 		if hasURL {

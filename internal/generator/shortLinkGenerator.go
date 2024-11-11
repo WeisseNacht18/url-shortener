@@ -1,4 +1,4 @@
-package shortlinkgenerator
+package generator
 
 import (
 	"crypto/rand"
