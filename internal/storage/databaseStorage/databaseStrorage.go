@@ -98,8 +98,27 @@ func (storage *DatabaseStorage) CheckURL(userID string, originalURL string) (sho
 }
 
 func (storage *DatabaseStorage) GetUsers() map[string]string {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
 
-	return map[string]string{}
+	result := map[string]string{}
+
+	rows, err := storage.database.QueryContext(ctx, "SELECT DISTINCT user_id FROM url ")
+	if err != nil || rows.Err() != nil {
+		return result
+	}
+
+	for rows.Next() {
+		var userID string
+		err = rows.Scan(&userID)
+		if err != nil {
+			return result
+		}
+
+		result[userID] = ""
+	}
+
+	return result
 }
 
 func (storage *DatabaseStorage) Close() {
@@ -163,7 +182,6 @@ func (storage *DatabaseStorage) GetAllURLsFromDatabase(userID string) map[string
 		return result
 	}
 
-	//тут перебрать каждую строку запроса и засунуть внутрь результата как показано ниже
 	for rows.Next() {
 		var row Row
 		err = rows.Scan(&row.originalURL, &row.shortURL)
