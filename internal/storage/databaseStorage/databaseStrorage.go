@@ -25,6 +25,7 @@ func NewDatabaseStorage(dsn string) *DatabaseStorage {
 				short_url character varying COLLATE pg_catalog."default" NOT NULL,
 				original_url character varying COLLATE pg_catalog."default" NOT NULL,
 				user_id character varying COLLATE pg_catalog."default",
+				is_deleted boolean COLLATE pg_catalog."default" NOT NULL,
 				CONSTRAINT url_pk PRIMARY KEY (id)
 			)`
 
@@ -53,7 +54,8 @@ func (storage *DatabaseStorage) AddURL(userID string, originalURL string, shortU
 	return
 }
 
-func (storage *DatabaseStorage) GetURL(userID string, shortURL string) (originalURL string, ok bool) {
+func (storage *DatabaseStorage) GetURL(userID string, shortURL string) (originalURL string, ok bool, wasDeleted bool) {
+	wasDeleted = false
 	originalURL, ok = storage.GetURLFromDatabase(userID, shortURL)
 	return
 }

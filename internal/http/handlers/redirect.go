@@ -9,9 +9,11 @@ import (
 func RedirectHandler(w http.ResponseWriter, r *http.Request) {
 	userID := r.Header.Get("x-user-id")
 	shortLink := r.RequestURI[1:]
-	value, ok := storage.GetURLFromStorage(userID, shortLink)
+	value, ok, wasDeleted := storage.GetURLFromStorage(userID, shortLink)
 
-	if ok {
+	if wasDeleted {
+		w.WriteHeader(http.StatusGone)
+	} else if ok {
 		http.Redirect(w, r, value, http.StatusTemporaryRedirect)
 	} else {
 		w.WriteHeader(http.StatusBadRequest)

@@ -54,7 +54,8 @@ func (storage *FileStorage) AddURL(userID string, originalURL string, shortURL s
 	return
 }
 
-func (storage *FileStorage) GetURL(userID string, shortURL string) (originalURL string, ok bool) {
+func (storage *FileStorage) GetURL(userID string, shortURL string) (originalURL string, ok bool, wasDeleted bool) {
+	wasDeleted = false
 	if userID != "" {
 		originalURL, ok = storage.Users[userID].ShortURLs[shortURL]
 	} else {

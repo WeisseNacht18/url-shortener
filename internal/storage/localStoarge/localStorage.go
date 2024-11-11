@@ -9,6 +9,7 @@ type LocalStorage struct {
 	Users        map[string]Container
 	ShortURLs    map[string]string
 	OriginalURLs map[string]string
+	DeletedURLs  map[string]string
 }
 
 func NewLocalStorage() *LocalStorage {
@@ -42,7 +43,12 @@ func (storage *LocalStorage) AddURL(userID string, originalURL string, shortURL 
 	return
 }
 
-func (storage *LocalStorage) GetURL(userID string, shortURL string) (originalURL string, ok bool) {
+func (storage *LocalStorage) GetURL(userID string, shortURL string) (originalURL string, ok bool, wasDeleted bool) {
+	_, wasDeleted = storage.DeletedURLs[shortURL]
+	if wasDeleted {
+		return
+	}
+
 	if userID != "" {
 		originalURL, ok = storage.Users[userID].ShortURLs[shortURL]
 	} else {

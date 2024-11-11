@@ -3,6 +3,7 @@ package user
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/WeisseNacht18/url-shortener/internal/http/handlers/api"
 	"github.com/WeisseNacht18/url-shortener/internal/logger"
@@ -48,4 +49,26 @@ func URLsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(content)
 
 	w.WriteHeader(http.StatusOK)
+}
+
+func DeleteURLs(w http.ResponseWriter, r *http.Request) {
+	if strings.Contains(r.Header.Get("Content-Type"), "application/json") {
+		var content []string
+
+		err := json.NewDecoder(r.Body).Decode(&content)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		//userID := r.Header.Get("x-user-id")
+
+		//err = storage.DeleteURLs(userID, content) //удалить url у конкретного пользователя
+
+		//если нет ошибки, то возращаем статус Accepted, если нет, то придумать какой.
+
+		w.WriteHeader(http.StatusAccepted)
+	} else {
+		w.WriteHeader(http.StatusBadRequest)
+	}
 }

@@ -11,7 +11,7 @@ import (
 
 type Storage interface {
 	AddURL(string, string, string) bool
-	GetURL(string, string) (string, bool)
+	GetURL(string, string) (string, bool, bool)
 	GetAllURLs(string) map[string]string
 	CheckStorage() error
 	CheckURL(string, string) (string, bool)
@@ -77,7 +77,7 @@ func AddArrayOfURLToStorage(userID string, originalURLs map[string]string) (resu
 	return
 }
 
-func GetURLFromStorage(userID string, shortURL string) (result string, ok bool) {
+func GetURLFromStorage(userID string, shortURL string) (result string, ok bool, wasDeleted bool) {
 	return storage.GetURL(userID, shortURL)
 }
 
