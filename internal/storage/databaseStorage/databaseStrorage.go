@@ -25,7 +25,7 @@ func NewDatabaseStorage(dsn string) *DatabaseStorage {
 				short_url character varying COLLATE pg_catalog."default" NOT NULL,
 				original_url character varying COLLATE pg_catalog."default" NOT NULL,
 				user_id character varying COLLATE pg_catalog."default",
-				is_deleted boolean COLLATE pg_catalog."default" NOT NULL,
+				is_deleted boolean NOT NULL,
 				CONSTRAINT url_pk PRIMARY KEY (id)
 			)`
 
