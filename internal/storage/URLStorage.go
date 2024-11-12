@@ -15,6 +15,7 @@ type Storage interface {
 	GetAllURLs(string) map[string]string
 	CheckStorage() error
 	CheckURL(string, string) (string, bool)
+	DeleteURL(string, string)
 	GetUsers() map[string]string
 	Close()
 }
@@ -75,6 +76,10 @@ func AddArrayOfURLToStorage(userID string, originalURLs map[string]string) (resu
 	}
 
 	return
+}
+
+func DeleteURL(userID string, URL string) {
+	storage.DeleteURL(userID, URL)
 }
 
 func GetURLFromStorage(userID string, shortURL string) (result string, ok bool, wasDeleted bool) {

@@ -61,11 +61,12 @@ func DeleteURLs(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		//userID := r.Header.Get("x-user-id")
+		userID := r.Header.Get("x-user-id")
 
-		//err = storage.DeleteURLs(userID, content) //удалить url у конкретного пользователя
-
-		//если нет ошибки, то возращаем статус Accepted, если нет, то придумать какой.
+		//попробовать сделать fanIn
+		for _, url := range content {
+			storage.DeleteURL(userID, url)
+		}
 
 		w.WriteHeader(http.StatusAccepted)
 	} else {

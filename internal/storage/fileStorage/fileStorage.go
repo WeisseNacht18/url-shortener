@@ -17,6 +17,7 @@ type FileStorage struct {
 	Users        map[string]Container
 	ShortURLs    map[string]string
 	OriginalURLs map[string]string
+	DeletedURLs  map[string]string
 	Path         string
 	LastID       uint
 }
@@ -28,6 +29,7 @@ func NewFileStorage(path string) *FileStorage {
 		Users:        usersContainer,
 		ShortURLs:    shortURLs,
 		OriginalURLs: originalURLs,
+		DeletedURLs:  map[string]string{},
 		Path:         path,
 	}
 
@@ -55,7 +57,11 @@ func (storage *FileStorage) AddURL(userID string, originalURL string, shortURL s
 }
 
 func (storage *FileStorage) GetURL(userID string, shortURL string) (originalURL string, ok bool, wasDeleted bool) {
-	wasDeleted = false
+	_, wasDeleted = storage.DeletedURLs[shortURL]
+	if wasDeleted {
+		return
+	}
+
 	if userID != "" {
 		originalURL, ok = storage.Users[userID].ShortURLs[shortURL]
 	} else {
@@ -83,6 +89,20 @@ func (storage *FileStorage) CheckURL(userID string, originalURL string) (val str
 		val, ok = storage.OriginalURLs[originalURL]
 	}
 	return
+}
+
+func (storage *FileStorage) DeleteURL(userID string, URL string) {
+	val := ""
+	if userID != "" {
+		val = storage.Users[userID].ShortURLs[URL]
+		delete(storage.ShortURLs, val)
+	}
+
+	val = storage.ShortURLs[URL]
+	storage.DeletedURLs[URL] = val
+	delete(storage.ShortURLs, val)
+
+	//придумать че делать с файлом
 }
 
 func (storage *FileStorage) GetUsers() map[string]string {

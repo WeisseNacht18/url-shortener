@@ -17,6 +17,7 @@ func NewLocalStorage() *LocalStorage {
 		Users:        map[string]Container{},
 		ShortURLs:    map[string]string{},
 		OriginalURLs: map[string]string{},
+		DeletedURLs:  map[string]string{},
 	}
 
 	return &storage
@@ -80,6 +81,18 @@ func (storage *LocalStorage) CheckURL(userID, originalURL string) (val string, o
 
 func (storage *LocalStorage) GetUsers() map[string]string {
 	return map[string]string{}
+}
+
+func (storage *LocalStorage) DeleteURL(userID string, URL string) {
+	val := ""
+	if userID != "" {
+		val = storage.Users[userID].ShortURLs[URL]
+		delete(storage.ShortURLs, val)
+	}
+
+	val = storage.ShortURLs[URL]
+	storage.DeletedURLs[URL] = val
+	delete(storage.ShortURLs, val)
 }
 
 func (storage *LocalStorage) Close() {

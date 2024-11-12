@@ -55,8 +55,7 @@ func (storage *DatabaseStorage) AddURL(userID string, originalURL string, shortU
 }
 
 func (storage *DatabaseStorage) GetURL(userID string, shortURL string) (originalURL string, ok bool, wasDeleted bool) {
-	wasDeleted = false
-	originalURL, ok = storage.GetURLFromDatabase(userID, shortURL)
+	originalURL, ok, wasDeleted = storage.GetURLFromDatabase(userID, shortURL)
 	return
 }
 
@@ -99,6 +98,27 @@ func (storage *DatabaseStorage) CheckURL(userID string, originalURL string) (sho
 	return
 }
 
+func (storage *DatabaseStorage) DeleteURL(userID string, URL string) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	logger.Logger.Infoln(userID)
+
+	var err error
+
+	if userID != "" {
+		const query = "UPDATE url SET is_deleted = true WHERE user_id = $1 AND short_url = $2"
+		_, err = storage.database.ExecContext(ctx, query, userID, URL)
+	} else {
+		const query = "UPDATE url SET is_deleted = true WHERE short_url = $1"
+		_, err = storage.database.ExecContext(ctx, query, URL)
+	}
+
+	if err != nil {
+		logger.Logger.Infoln(err)
+	}
+}
+
 func (storage *DatabaseStorage) GetUsers() map[string]string {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -131,8 +151,6 @@ func (storage *DatabaseStorage) SaveURLToDatabase(userID string, shortURL string
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	logger.Logger.Infoln(userID)
-
 	if userID != "" {
 		const query = "INSERT INTO url (short_url, original_url, user_id) VALUES ($1, $2, $3)"
 		_, err = storage.database.ExecContext(ctx, query, shortURL, originalURL, userID)
@@ -144,28 +162,34 @@ func (storage *DatabaseStorage) SaveURLToDatabase(userID string, shortURL string
 	return
 }
 
-func (storage *DatabaseStorage) GetURLFromDatabase(userID string, shortURL string) (result string, ok bool) {
+func (storage *DatabaseStorage) GetURLFromDatabase(userID string, shortURL string) (result string, ok bool, wasDeleted bool) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
 	var originalURL string
+	type Response struct {
+		OriginalURL string `sql:"original_url"`
+		IsDeleted   bool   `sql:"is_deleted"`
+	}
 
 	var row *sql.Row
 
 	if userID != "" {
-		const query = "SELECT original_url FROM url WHERE short_url = $1 AND user_id = $2 LIMIT 1"
+		const query = "SELECT original_url, is_deleted FROM url WHERE short_url = $1 AND user_id = $2 LIMIT 1"
 		row = storage.database.QueryRowContext(ctx, query, shortURL, userID)
 	} else {
-		const query = "SELECT original_url FROM url WHERE short_url = $1 LIMIT 1"
+		const query = "SELECT original_url, is_deleted FROM url WHERE short_url = $1 LIMIT 1"
 		row = storage.database.QueryRowContext(ctx, query, shortURL)
 	}
 
-	err := row.Scan(&originalURL)
+	var response Response
+
+	err := row.Scan(&response.OriginalURL, &response.IsDeleted)
 	if err != nil {
-		return originalURL, false
+		return originalURL, false, false
 	}
 
-	return originalURL, true
+	return response.OriginalURL, true, response.IsDeleted
 }
 
 func (storage *DatabaseStorage) GetAllURLsFromDatabase(userID string) map[string]string {
