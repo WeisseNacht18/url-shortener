@@ -14,6 +14,7 @@ func AddHandlersToRouter(router *chi.Mux) {
 	router.Get("/ping", PingHandler)
 	router.Get("/{id}", RedirectHandler)
 	router.Get("/api/user/urls", user.URLsHandler)
+	router.Delete("/api/user/urls", user.DeleteURLs)
 }
 
 var (
