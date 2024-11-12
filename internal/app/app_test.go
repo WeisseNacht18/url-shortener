@@ -44,7 +44,7 @@ func TestHandler_CreateShortUrl(t *testing.T) {
 		{
 			name: "create short URL with empty input",
 			data: data{
-				url:         "",
+				url:         "http://test.test",
 				contentType: "text/plain",
 			},
 			want: want{
@@ -116,7 +116,7 @@ func TestHandler_CreateShortUrlWithAPI(t *testing.T) {
 		{
 			name: "create short URL (API method) with empty input",
 			data: data{
-				url:         "",
+				url:         "http://test.test",
 				contentType: "application/json",
 			},
 			want: want{

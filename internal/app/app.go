@@ -15,6 +15,7 @@ func Run(config config.Config) {
 	logger.Init()
 
 	storage.NewURLStorage(config.FileStoragePath, config.DatabaseDSN)
+	defer storage.Close()
 	handlers.New(config.BaseURL)
 
 	router := chi.NewRouter()

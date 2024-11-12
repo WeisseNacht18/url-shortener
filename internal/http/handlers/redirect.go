@@ -2,15 +2,18 @@ package handlers
 
 import (
 	"net/http"
-	"strings"
 
 	"github.com/WeisseNacht18/url-shortener/internal/storage"
 )
 
 func RedirectHandler(w http.ResponseWriter, r *http.Request) {
-	id := strings.TrimPrefix(r.URL.Path, "/")
-	value, ok := storage.GetURLFromStorage(id)
-	if ok {
+	userID := r.Header.Get("x-user-id")
+	shortLink := r.RequestURI[1:]
+	value, ok, wasDeleted := storage.GetURLFromStorage(userID, shortLink)
+
+	if wasDeleted {
+		w.WriteHeader(http.StatusGone)
+	} else if ok {
 		http.Redirect(w, r, value, http.StatusTemporaryRedirect)
 	} else {
 		w.WriteHeader(http.StatusBadRequest)

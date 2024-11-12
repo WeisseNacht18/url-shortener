@@ -36,7 +36,13 @@ func CreateShortURLBatchHandler(w http.ResponseWriter, r *http.Request) {
 			data[v.CorrelationID] = v.OriginalURL
 		}
 
-		result := storage.AddArrayOfURLToStorage(data)
+		userID := r.Header.Get("x-user-id")
+
+		result, err := storage.AddArrayOfURLToStorage(userID, data)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 
 		var response []ShortenBatchResponse
 
