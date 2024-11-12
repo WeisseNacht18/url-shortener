@@ -152,10 +152,10 @@ func (storage *DatabaseStorage) SaveURLToDatabase(userID string, shortURL string
 	defer cancel()
 
 	if userID != "" {
-		const query = "INSERT INTO url (short_url, original_url, user_id) VALUES ($1, $2, $3)"
+		const query = "INSERT INTO url (short_url, original_url, user_id, is_deleted) VALUES ($1, $2, $3, false)"
 		_, err = storage.database.ExecContext(ctx, query, shortURL, originalURL, userID)
 	} else {
-		const query = "INSERT INTO url (short_url, original_url) VALUES ($1, $2)"
+		const query = "INSERT INTO url (short_url, original_url, is_deleted) VALUES ($1, $2, false)"
 		_, err = storage.database.ExecContext(ctx, query, shortURL, originalURL)
 	}
 
